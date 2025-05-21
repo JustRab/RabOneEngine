@@ -1,2 +1,4 @@
 # RabOneEngine
-Compendio de las clases vistas en la materia de Arquitectura de Motores Gráficos. 
+Graphic Engine developed from scratch using C++ and DX11 library.
+
+STILL IN DEVELOPMENT - EXPECTED RELEASE DATE 07-2025
