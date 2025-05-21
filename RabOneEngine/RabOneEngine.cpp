@@ -277,7 +277,7 @@ HRESULT InitDevice()
         return hr;
     }
 
-    hr = g_device.m_device->CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader);
+    hr = g_device.CreateVertexShader(pVSBlob->GetBufferPointer(), pVSBlob->GetBufferSize(), NULL, &g_pVertexShader);
     if (FAILED(hr))
     {
         pVSBlob->Release();
@@ -292,7 +292,7 @@ HRESULT InitDevice()
     };
     UINT numElements = ARRAYSIZE(layout);
 
-    hr = g_device.m_device->CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
+    hr = g_device.CreateInputLayout(layout, numElements, pVSBlob->GetBufferPointer(),
         pVSBlob->GetBufferSize(), &g_pVertexLayout);
     pVSBlob->Release();
     if (FAILED(hr))
@@ -310,7 +310,7 @@ HRESULT InitDevice()
         return hr;
     }
 
-    hr = g_device.m_device->CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
+    hr = g_device.CreatePixelShader(pPSBlob->GetBufferPointer(), pPSBlob->GetBufferSize(), NULL, &g_pPixelShader);
     pPSBlob->Release();
     if (FAILED(hr))
         return hr;
@@ -358,7 +358,7 @@ HRESULT InitDevice()
     D3D11_SUBRESOURCE_DATA InitData;
     ZeroMemory(&InitData, sizeof(InitData));
     InitData.pSysMem = vertices;
-    hr = g_device.m_device->CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
+    hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -394,7 +394,7 @@ HRESULT InitDevice()
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = indices;
-    hr = g_device.m_device->CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
+    hr = g_device.CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -408,17 +408,17 @@ HRESULT InitDevice()
     bd.ByteWidth = sizeof(CBNeverChanges);
     bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
     bd.CPUAccessFlags = 0;
-    hr = g_device.m_device->CreateBuffer(&bd, NULL, &g_pCBNeverChanges);
+    hr = g_device.CreateBuffer(&bd, NULL, &g_pCBNeverChanges);
     if (FAILED(hr))
         return hr;
 
     bd.ByteWidth = sizeof(CBChangeOnResize);
-    hr = g_device.m_device->CreateBuffer(&bd, NULL, &g_pCBChangeOnResize);
+    hr = g_device.CreateBuffer(&bd, NULL, &g_pCBChangeOnResize);
     if (FAILED(hr))
         return hr;
 
     bd.ByteWidth = sizeof(CBChangesEveryFrame);
-    hr = g_device.m_device->CreateBuffer(&bd, NULL, &g_pCBChangesEveryFrame);
+    hr = g_device.CreateBuffer(&bd, NULL, &g_pCBChangesEveryFrame);
     if (FAILED(hr))
         return hr;
 
@@ -482,7 +482,7 @@ HRESULT InitDevice()
     bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = planeVertices;
-    hr = g_device.m_device->CreateBuffer(&bd, &InitData, &g_pPlaneVertexBuffer);
+    hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneVertexBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -491,7 +491,7 @@ HRESULT InitDevice()
     bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
     bd.CPUAccessFlags = 0;
     InitData.pSysMem = planeIndices;
-    hr = g_device.m_device->CreateBuffer(&bd, &InitData, &g_pPlaneIndexBuffer);
+    hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneIndexBuffer);
     if (FAILED(hr))
         return hr;
 
@@ -504,7 +504,7 @@ HRESULT InitDevice()
             "Error al compilar el ShadowPS.", "Error", MB_OK);
         return hr;
     }
-    hr = g_device.m_device->CreatePixelShader(pShadowPSBlob->GetBufferPointer(), pShadowPSBlob->GetBufferSize(), NULL, &g_pShadowPixelShader);
+    hr = g_device.CreatePixelShader(pShadowPSBlob->GetBufferPointer(), pShadowPSBlob->GetBufferSize(), NULL, &g_pShadowPixelShader);
     pShadowPSBlob->Release();
     if (FAILED(hr))
         return hr;
@@ -520,7 +520,7 @@ HRESULT InitDevice()
     blendDesc.RenderTarget[0].DestBlendAlpha = D3D11_BLEND_ZERO;
     blendDesc.RenderTarget[0].BlendOpAlpha = D3D11_BLEND_OP_ADD;
     blendDesc.RenderTarget[0].RenderTargetWriteMask = D3D11_COLOR_WRITE_ENABLE_ALL;
-    hr = g_device.m_device->CreateBlendState(&blendDesc, &g_pShadowBlendState);
+    hr = g_device.CreateBlendState(&blendDesc, &g_pShadowBlendState);
     if (FAILED(hr))
         return hr;
 
@@ -530,7 +530,7 @@ HRESULT InitDevice()
     dsDesc.DepthWriteMask = D3D11_DEPTH_WRITE_MASK_ZERO; // Deshabilitar escritura en depth
     dsDesc.DepthFunc = D3D11_COMPARISON_LESS;
     dsDesc.StencilEnable = FALSE;
-    hr = g_device.m_device->CreateDepthStencilState(&dsDesc, &g_pShadowDepthStencilState);
+    hr = g_device.CreateDepthStencilState(&dsDesc, &g_pShadowDepthStencilState);
     if (FAILED(hr))
         return hr;
 
