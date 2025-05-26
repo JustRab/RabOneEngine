@@ -258,3 +258,26 @@ Device::CreateDepthStencilState(const D3D11_DEPTH_STENCIL_DESC* pDepthStencilDes
 	return hr;
 }
 
+HRESULT
+Device::CreateRasterizerState(const D3D11_RASTERIZER_DESC* pRasterizerDesc,
+	ID3D11RasterizerState** ppRasterizerState) {
+	// Validar parametros de entrada
+	if (!pRasterizerDesc) {
+		ERROR("Device", "CreateRasterizerState", "pRasterizerDesc is nullptr");
+		return E_INVALIDARG;
+	}
+	if (!ppRasterizerState) {
+		ERROR("Device", "CreateRasterizerState", "ppRasterizerState is nullptr");
+		return E_POINTER;
+	}
+	// Crear el rasterizer state
+	HRESULT hr = m_device->CreateRasterizerState(pRasterizerDesc, ppRasterizerState);
+	if (SUCCEEDED(hr)) {
+		MESSAGE("Device", "CreateRasterizerState", "Rasterizer state created successfully!");
+	}
+	else {
+		ERROR("Device", "CreateRasterizerState", ("Failed to create rasterizer state. HRESULT: " + std::to_string(hr)).c_str());
+	}
+	return hr;
+}
+
