@@ -60,3 +60,10 @@ struct CBChangesEveryFrame
     XMMATRIX mWorld;
     XMFLOAT4 vMeshColor;
 };
+
+enum ExtensionType
+{
+    DDS = 0,
+	PNG = 1,
+	JPG = 2
+};
