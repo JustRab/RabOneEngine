@@ -6,19 +6,27 @@ class Device;
 class DeviceContext;
 class Texture;
 
-class DepthStencilView
-{
+class 
+DepthStencilView {
 public:
 	DepthStencilView() = default;
 	~DepthStencilView() = default;
 
-	HRESULT init(Device& device, Texture& depthStencil, DXGI_FORMAT format);
+  // Initializes the depth stencil view with the given device and texture.
+	HRESULT
+	init(Device& device, Texture& depthStencil, DXGI_FORMAT format);
 
-	void update();
+  // Updates the depth stencil view.
+	void 
+	update();
 
-	void render(DeviceContext& deviceContext);
+  // Renders using the depth stencil view.
+	void 
+	render(DeviceContext& deviceContext);
 
-	void destroy();
+  // Destroys the depth stencil view and releases resources.
+	void 
+	destroy();
 
 public:
 	ID3D11DepthStencilView* m_depthStencilView = nullptr;

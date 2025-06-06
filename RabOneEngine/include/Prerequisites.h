@@ -1,4 +1,5 @@
 #pragma once
+
 // Librerias STD
 #include <string>
 #include <sstream>
@@ -14,9 +15,14 @@
 #include "Resource.h"
 //#include "resource.h"
 
+//--------------------------------------------------------------------------------------
 // MACROS
+//--------------------------------------------------------------------------------------
+
+// Libera de manera segura un objeto COM.
 #define SAFE_RELEASE(x) if(x != nullptr) x->Release(); x = nullptr;
 
+// Imprime un mensaje de depuración indicando la creación de un recurso; con el nombre de la clase, método y estado del recurso.
 #define MESSAGE( classObj, method, state )   \
 {                                            \
    std::wostringstream os_;                  \
@@ -24,6 +30,7 @@
    OutputDebugStringW( os_.str().c_str() );  \
 }
 
+// Imprime un mensaje de depuración de tipo "error" con el nombre de la clase, método y estado del recurso.
 #define ERROR(classObj, method, errorMSG)                     \
 {                                                             \
     try {                                                     \
@@ -39,31 +46,36 @@
 //--------------------------------------------------------------------------------------
 // Estructuras
 //--------------------------------------------------------------------------------------
-struct SimpleVertex
-{
+// Representa un vértice simple con posición y coordenadas de textura
+struct 
+SimpleVertex {
     XMFLOAT3 Pos;
     XMFLOAT2 Tex;
 };
 
-struct CBNeverChanges
-{
+// Estructura de un buffer constante para matrices "view" que no cambian.
+struct
+CBNeverChanges {
     XMMATRIX mView;
 };
 
-struct CBChangeOnResize
-{
+// Estructura de un buffer constante para matrices "projection" que cambian al redimensionar la ventana.
+struct 
+CBChangeOnResize {
     XMMATRIX mProjection;
 };
 
-struct CBChangesEveryFrame
-{
+// Estructura de un buffer constante para matrices "world" y el color del mesh que cambian cada frame.
+struct 
+CBChangesEveryFrame {
     XMMATRIX mWorld;
     XMFLOAT4 vMeshColor;
 };
 
-enum ExtensionType
-{
-    DDS = 0,
+// Enumeración para tipos de extensiones de archivos soportados
+enum 
+ExtensionType {
+  DDS = 0,
 	PNG = 1,
 	JPG = 2
 };

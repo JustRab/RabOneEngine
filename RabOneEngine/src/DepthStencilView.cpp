@@ -3,8 +3,9 @@
 #include "DeviceContext.h"
 #include "Texture.h"
 
-HRESULT DepthStencilView::init(Device& device, Texture& depthStencil, DXGI_FORMAT format)
-{
+// Initializes the depth stencil view using the given device and depth stencil texture.
+HRESULT 
+DepthStencilView::init(Device& device, Texture& depthStencil, DXGI_FORMAT format) {
 	if (!device.m_device) {
 		ERROR("DepthStencilView", "init", "Device is not initialized / is null.");
 		return E_FAIL;
@@ -34,6 +35,7 @@ HRESULT DepthStencilView::init(Device& device, Texture& depthStencil, DXGI_FORMA
 	return S_OK;
 }
 
+// Clears the depth stencil view using the provided device context.
 void 
 DepthStencilView::render(DeviceContext& deviceContext)
 {
@@ -50,7 +52,9 @@ DepthStencilView::render(DeviceContext& deviceContext)
 		D3D11_CLEAR_DEPTH | D3D11_CLEAR_STENCIL, 1.0f, 0);
 }
 
-void DepthStencilView::destroy()
+// Releases the depth stencil view resource.
+void 
+DepthStencilView::destroy()
 {
 	SAFE_RELEASE(m_depthStencilView);
 }

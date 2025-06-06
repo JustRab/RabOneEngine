@@ -1,38 +1,46 @@
 #pragma once
 #include "Prerequisites.h"
 
+// Forward Declarations
 class Device;
 class DeviceContext;
 class Window;
 class Texture;
 
 class
-	SwapChain {
+SwapChain {
 public:
 	SwapChain() = default;
 	~SwapChain() = default;
 
+  // Initializes the swap chain with the given device, device context, back buffer texture, and window
 	HRESULT
-		init(Device& device,
+	init(Device& device,
 			DeviceContext& deviceContext,
 			Texture& backBuffer,
 			Window window);
 
+  // Updates the swap chain state, if necessary
 	void
-		update();
+	update();
 
+  // Renders the current frame using the swap chain.
 	void
-		render();
+	render();
 
+  // Destroys the swap chain and releases associated resources.
 	void
-		destroy();
+	destroy();
 
+  // Presents the current frame to the screen.
 	void
-		present();
+	present();
 
-public:
-	IDXGISwapChain* m_swapChain = nullptr;
+  // Pointer to the directX swap chain.
+	IDXGISwapChain* m_swapChain = nullptr; 
+  // Type of the Direct3D driver being used.
 	D3D_DRIVER_TYPE m_driverType = D3D_DRIVER_TYPE_NULL;
+
 private:
 	D3D_FEATURE_LEVEL m_featureLevel = D3D_FEATURE_LEVEL_11_0;
 	// MSAA Configuration

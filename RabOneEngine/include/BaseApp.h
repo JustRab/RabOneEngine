@@ -1,21 +1,30 @@
 #pragma once
 #include "Prerequisites.h"
 
-class BaseApp
-{
+class
+	BaseApp {
 public:
 	BaseApp();
 	~BaseApp();
 
-	HRESULT init();
+	// Initializes the application by setting up the necessary resources.
+	HRESULT 
+	init();
 
-	void update();
+	// Updates de application logic each frame.
+	void 
+	update();
 
-	void render();
+  // Renders the application content to the screen.
+	void 
+	render();
 
+  // Releases all resources and cleans up the application to free memory before exiting.
 	void destroy();
 
-	int run(HINSTANCE hInstance, 
+	// Runs the application from the main entry point.
+	int 
+	run(HINSTANCE hInstance, 
 			HINSTANCE hPrevInstance, 
 			LPWSTR lpCmdLine, 
 			int nCmdShow, 

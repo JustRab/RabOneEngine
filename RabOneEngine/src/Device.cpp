@@ -1,6 +1,7 @@
 #include "Device.h"
 
-void Device::destroy(){
+void 
+Device::destroy(){
 	SAFE_RELEASE(m_device);
 }
 
