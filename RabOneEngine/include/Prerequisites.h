@@ -1,6 +1,8 @@
 #pragma once
 
-// Librerias STD
+//--------------------------------------------------------------------------------------
+// Standard Library Includes
+//--------------------------------------------------------------------------------------
 #include <string>
 #include <sstream>
 #include <vector>
@@ -8,7 +10,9 @@
 #include <xnamath.h>
 #include <thread>
 
-// Librerias de DirectX
+//--------------------------------------------------------------------------------------
+// DirectX Library Includes
+//--------------------------------------------------------------------------------------
 #include <d3d11.h>
 #include <d3dx11.h>
 #include <d3dcompiler.h>
@@ -19,10 +23,18 @@
 // MACROS
 //--------------------------------------------------------------------------------------
 
-// Libera de manera segura un objeto COM.
+/**
+ * @brief Safely releases a COM object and sets its pointer to nullptr.
+ * @param x Pointer to the COM object to release.
+ */
 #define SAFE_RELEASE(x) if(x != nullptr) x->Release(); x = nullptr;
 
-// Imprime un mensaje de depuración indicando la creación de un recurso; con el nombre de la clase, método y estado del recurso.
+/**
+ * @brief Prints a debug message indicating the creation of a resource, including the class name, method, and resource state.
+ * @param classObj Name of the class.
+ * @param method Name of the method.
+ * @param state State or description of the resource.
+ */
 #define MESSAGE( classObj, method, state )   \
 {                                            \
    std::wostringstream os_;                  \
@@ -30,7 +42,12 @@
    OutputDebugStringW( os_.str().c_str() );  \
 }
 
-// Imprime un mensaje de depuración de tipo "error" con el nombre de la clase, método y estado del recurso.
+/**
+ * @brief Prints a debug error message with the class name, method, and error description.
+ * @param classObj Name of the class.
+ * @param method Name of the method.
+ * @param errorMSG Error message or description.
+ */
 #define ERROR(classObj, method, errorMSG)                     \
 {                                                             \
     try {                                                     \
@@ -43,39 +60,54 @@
     }                                                         \
 }
 
-//--------------------------------------------------------------------------------------
-// Estructuras
-//--------------------------------------------------------------------------------------
-// Representa un vértice simple con posición y coordenadas de textura
+   //--------------------------------------------------------------------------------------
+   // Estructuras
+   //--------------------------------------------------------------------------------------
+/**
+ * @struct SimpleVertex
+ * @brief Represents a simple vertex with position and texture coordinates.
+ */
 struct
   SimpleVertex {
-  XMFLOAT3 Pos;
-  XMFLOAT2 Tex;
+  XMFLOAT3 Pos; ///< Position of the vertex.
+  XMFLOAT2 Tex; ///< Texture coordinates of the vertex.
 };
 
-// Estructura de un buffer constante para matrices "view" que no cambian.
+/**
+ * @struct CBNeverChanges
+ * @brief Constant buffer structure for a "view" matrix that does not change.
+ */
 struct
   CBNeverChanges {
-  XMMATRIX mView;
+  XMMATRIX mView; ///< View matrix.
 };
 
-// Estructura de un buffer constante para matrices "projection" que cambian al redimensionar la ventana.
+/**
+ * @struct CBChangeOnResize
+ * @brief Constant buffer structure for a "projection" matrix that changes when the window is resized.
+ */
 struct
   CBChangeOnResize {
-  XMMATRIX mProjection;
+  XMMATRIX mProjection; ///< Projection matrix.
 };
 
-// Estructura de un buffer constante para matrices "world" y el color del mesh que cambian cada frame.
+/**
+ * @struct CBChangesEveryFrame
+ * @brief Constant buffer structure for "world" matrix and mesh color that change every frame.
+ */
 struct
   CBChangesEveryFrame {
-  XMMATRIX mWorld;
-  XMFLOAT4 vMeshColor;
+  XMMATRIX mWorld;      ///< World matrix.
+  XMFLOAT4 vMeshColor;  ///< Mesh color.
 };
 
-// Enumeración para tipos de extensiones de archivos soportados
+/**
+ * @enum ExtensionType
+ * @brief Enumeration for supported file extension types.
+ */
 enum
   ExtensionType {
-  DDS = 0,
-  PNG = 1,
-  JPG = 2
+  DDS = 0, ///< DirectDraw Surface format.
+  PNG = 1, ///< Portable Network Graphics format.
+  JPG = 2  ///< JPEG image format.
 };
