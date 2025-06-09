@@ -47,35 +47,35 @@
 // Estructuras
 //--------------------------------------------------------------------------------------
 // Representa un vértice simple con posición y coordenadas de textura
-struct 
-SimpleVertex {
-    XMFLOAT3 Pos;
-    XMFLOAT2 Tex;
+struct
+  SimpleVertex {
+  XMFLOAT3 Pos;
+  XMFLOAT2 Tex;
 };
 
 // Estructura de un buffer constante para matrices "view" que no cambian.
 struct
-CBNeverChanges {
-    XMMATRIX mView;
+  CBNeverChanges {
+  XMMATRIX mView;
 };
 
 // Estructura de un buffer constante para matrices "projection" que cambian al redimensionar la ventana.
-struct 
-CBChangeOnResize {
-    XMMATRIX mProjection;
+struct
+  CBChangeOnResize {
+  XMMATRIX mProjection;
 };
 
 // Estructura de un buffer constante para matrices "world" y el color del mesh que cambian cada frame.
-struct 
-CBChangesEveryFrame {
-    XMMATRIX mWorld;
-    XMFLOAT4 vMeshColor;
+struct
+  CBChangesEveryFrame {
+  XMMATRIX mWorld;
+  XMFLOAT4 vMeshColor;
 };
 
 // Enumeración para tipos de extensiones de archivos soportados
-enum 
-ExtensionType {
+enum
+  ExtensionType {
   DDS = 0,
-	PNG = 1,
-	JPG = 2
+  PNG = 1,
+  JPG = 2
 };
