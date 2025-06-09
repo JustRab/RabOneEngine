@@ -24,8 +24,8 @@ BaseApp::destroy() {
 // Ejecuta la aplicación, configurando el entorno y el bucle principal.
 int 
 BaseApp::run(HINSTANCE hInstance0,
-            HINSTANCE hPrevInstance,
-            LPWSTR lpCmdLine,
-            int nCmdShow, WNDPROC wndproc) {
+             HINSTANCE hPrevInstance,
+             LPWSTR lpCmdLine,
+             int nCmdShow, WNDPROC wndproc) {
   return 0;
 }

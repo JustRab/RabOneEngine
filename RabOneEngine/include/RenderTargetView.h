@@ -8,8 +8,7 @@ class Texture;
 class DepthStencilView;
 
 class
-RenderTargetView
-{
+RenderTargetView {
 public:
   RenderTargetView() = default;
   ~RenderTargetView() = default;

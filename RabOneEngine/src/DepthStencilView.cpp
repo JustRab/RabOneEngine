@@ -37,8 +37,7 @@ DepthStencilView::init(Device& device, Texture& depthStencil, DXGI_FORMAT format
 
 // Clears the depth stencil view using the provided device context.
 void
-DepthStencilView::render(DeviceContext& deviceContext)
-{
+DepthStencilView::render(DeviceContext& deviceContext) {
   if (!deviceContext.m_deviceContext) {
     ERROR("DepthStencilView", "render", "Device context is not initialized / is null.");
     return;
@@ -54,7 +53,6 @@ DepthStencilView::render(DeviceContext& deviceContext)
 
 // Releases the depth stencil view resource.
 void
-DepthStencilView::destroy()
-{
+DepthStencilView::destroy() {
   SAFE_RELEASE(m_depthStencilView);
 }

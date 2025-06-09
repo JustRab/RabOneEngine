@@ -112,7 +112,7 @@ RenderTargetView::render(DeviceContext& deviceContext,
 
 void 
 RenderTargetView::render(DeviceContext& deviceContext,
-                        unsigned int numViews)
+                         unsigned int numViews)
 {
   if (!deviceContext.m_deviceContext) {
     ERROR("RenderTargetView", "render", "Invalid device context. (m_deviceContext is nullptr)");

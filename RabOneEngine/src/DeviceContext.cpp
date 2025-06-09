@@ -2,7 +2,7 @@
 
 void
 DeviceContext::RSSetViewports(unsigned int NumViewports,
-  const D3D11_VIEWPORT* pViewports) {
+                              const D3D11_VIEWPORT* pViewports) {
   if (NumViewports > 0 && pViewports != nullptr) {
     ERROR("DeviceContext", "RSSetViewports", "pViewports is nullptr");
   }
@@ -12,13 +12,13 @@ DeviceContext::RSSetViewports(unsigned int NumViewports,
 
 void
 DeviceContext::ClearDepthStencilView(ID3D11DepthStencilView* pDepthStencilView,
-  unsigned int ClearFlags,
-  float Depth,
-  UINT8 Stencil) {
+                                     unsigned int ClearFlags,
+                                     float Depth,
+                                     UINT8 Stencil) {
 }
 
 void
 DeviceContext::ClearRenderTargetView(ID3D11RenderTargetView* pRenderTargetView,
-  const float ColorRGBA[4]) {
+                                     const float ColorRGBA[4]) {
 
 }

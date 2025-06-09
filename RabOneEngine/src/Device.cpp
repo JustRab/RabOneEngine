@@ -7,8 +7,8 @@ Device::destroy() {
 
 HRESULT
 Device::CreateRenderTargetView(ID3D11Resource* pResource,
-  const D3D11_RENDER_TARGET_VIEW_DESC* pDesc,
-  ID3D11RenderTargetView** ppRTView) {
+                               const D3D11_RENDER_TARGET_VIEW_DESC* pDesc,
+                               ID3D11RenderTargetView** ppRTView) {
   // Validar parametros de entrada
   if (!pResource) {
     ERROR("Device", "CreateRenderTargetView", "pResource is nullptr");
@@ -33,8 +33,8 @@ Device::CreateRenderTargetView(ID3D11Resource* pResource,
 
 HRESULT
 Device::CreateTexture2D(const D3D11_TEXTURE2D_DESC* pDesc,
-  const D3D11_SUBRESOURCE_DATA* pInitialData,
-  ID3D11Texture2D** ppTexture2D) {
+                        const D3D11_SUBRESOURCE_DATA* pInitialData,
+                        ID3D11Texture2D** ppTexture2D) {
 
   // Validar parametros de entrada
   if (!pDesc) {

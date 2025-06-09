@@ -22,12 +22,12 @@ public:
   // Intializes a texture with specified parameters.
   HRESULT
   init(Device device,
-      unsigned int width,
-      unsigned int height,
-      DXGI_FORMAT format,
-      unsigned int BindFlags,
-      unsigned int sampleCount = 1,
-      unsigned int qualityLevels = 0);
+       unsigned int width,
+       unsigned int height,
+       DXGI_FORMAT format,
+       unsigned int BindFlags,
+       unsigned int sampleCount = 1,
+       unsigned int qualityLevels = 0);
 
   // Intializes a texture with a reference to another texture.
   HRESULT
@@ -41,8 +41,8 @@ public:
   // Renders the texture using the device context.
   void
   render(DeviceContext& deviceContext,
-      unsigned int StartSlot,
-      unsigned int NumViews);
+         unsigned int StartSlot,
+         unsigned int NumViews);
 
   // Releases texture resources and cleans up memory.
   void
