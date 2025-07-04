@@ -23,7 +23,8 @@ public:
 
   // Actualiza los constant buffers a nivel logico
   void
-  update(ID3D11Resource* pDstResource,
+    update(DeviceContext& deviceContext,
+         ID3D11Resource* pDstResource,
          unsigned int DstSubresource,
          const D3D11_BOX* pDstBox,
          const void* pSrcData,
@@ -37,6 +38,9 @@ public:
          unsigned int NumBuffers,
          bool setPixelShader = false,
          DXGI_FORMAT format = DXGI_FORMAT_UNKNOWN);
+
+  void
+  destroy();
 
   HRESULT
   createBuffer(Device& device,
