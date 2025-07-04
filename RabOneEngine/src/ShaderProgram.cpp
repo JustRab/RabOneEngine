@@ -4,8 +4,8 @@
 
 HRESULT
 ShaderProgram::init(Device& device,
-	                  const std::string& fileName,
-	                  std::vector<D3D11_INPUT_ELEMENT_DESC> Layout) {
+	const std::string& fileName,
+	std::vector<D3D11_INPUT_ELEMENT_DESC> Layout) {
 	if (!device.m_device) {
 		ERROR("ShaderProgram", "init", "Device is null.");
 		return E_POINTER;
@@ -132,14 +132,32 @@ ShaderProgram::CreateShader(Device& device, ShaderType type) {
 		m_vertexShaderData = shaderData;
 	}
 
-	return E_NOTIMPL;
+	return S_OK;
+}
+
+HRESULT
+ShaderProgram::CreateShader(Device& device, ShaderType type, 
+													  const std::string& fileName) {
+	if (!device.m_device) {
+		ERROR("ShaderProgram", "init", "Device is null.");
+		return E_POINTER;
+	}
+	if (fileName.empty()) {
+		ERROR("ShaderProgram", "init", "File name is empty.");
+		return E_INVALIDARG;
+	}
+	m_shaderFileName = fileName;
+	CreateShader(device, type);
+
+
+	return S_OK;
 }
 
 HRESULT
 ShaderProgram::CompileShaderFromFile(char* szFileName,
-	                                   LPCSTR szEntryPoint,
-	                                   LPCSTR szShaderModel,
-	                                   ID3DBlob** ppBlobOut) {
+	LPCSTR szEntryPoint,
+	LPCSTR szShaderModel,
+	ID3DBlob** ppBlobOut) {
 	HRESULT hr = S_OK;
 
 	DWORD dwShaderFlags = D3DCOMPILE_ENABLE_STRICTNESS;
@@ -182,4 +200,43 @@ ShaderProgram::CompileShaderFromFile(char* szFileName,
 	SAFE_RELEASE(pErrorBlob)
 
 		return S_OK;
+}
+
+void
+ShaderProgram::update() {
+}
+
+void
+ShaderProgram::render(DeviceContext& deviceContext) {
+	if (!m_VertexShader || !m_PixelShader || !m_inputLayout.m_inputLayout) {
+		ERROR("ShaderProgram", "render", "Shaders or InputLayout not initialized");
+		return;
+	}
+
+	m_inputLayout.render(deviceContext);
+	deviceContext.m_deviceContext->VSSetShader(m_VertexShader, nullptr, 0);
+	deviceContext.m_deviceContext->PSSetShader(m_PixelShader, nullptr, 0);
+}
+
+void
+ShaderProgram::render(DeviceContext& deviceContext, ShaderType type) {
+	switch (type) {
+	case VERTEX_SHADER:
+		deviceContext.m_deviceContext->VSSetShader(m_VertexShader, nullptr, 0);
+		break;
+	case PIXEL_SHADER:
+		deviceContext.m_deviceContext->PSSetShader(m_PixelShader, nullptr, 0);
+		break;
+	default:
+		break;
+	}
+}
+
+void
+ShaderProgram::destroy() {
+	SAFE_RELEASE(m_VertexShader);
+	m_inputLayout.destroy();
+	SAFE_RELEASE(m_PixelShader);
+	SAFE_RELEASE(m_vertexShaderData);
+	SAFE_RELEASE(m_pixelShaderData);
 }

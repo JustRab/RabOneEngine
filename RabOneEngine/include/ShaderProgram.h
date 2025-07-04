@@ -23,6 +23,9 @@ public:
   render(DeviceContext& deviceContext);
 
   void
+    render(DeviceContext& deviceContext, ShaderType type);
+
+  void
   destroy();
 
   HRESULT
@@ -31,6 +34,9 @@ public:
 
   HRESULT
   CreateShader(Device& device, ShaderType type);
+
+  HRESULT
+    CreateShader(Device& device, ShaderType type, const std::string& fileName);
 
   HRESULT
   CompileShaderFromFile(char* szFileName,
