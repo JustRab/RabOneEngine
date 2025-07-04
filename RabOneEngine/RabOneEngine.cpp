@@ -34,7 +34,6 @@ Buffer m_changeOnResize;
 Buffer m_vertexBuffer;
 Buffer m_indexBuffer;
 Buffer m_changeEveryFrame;
-
 // Cube Shadow Buffers
 Buffer m_constShadow;
 
@@ -42,10 +41,6 @@ Buffer m_constShadow;
 Buffer m_planeVertexBuffer;
 Buffer m_planeIndexBuffer;
 Buffer m_constPlane;
-
-ID3D11Buffer* g_pCBNeverChanges = NULL;
-ID3D11Buffer* g_pCBChangeOnResize = NULL;
-ID3D11Buffer* g_pCBChangesEveryFrame = NULL;
 
 // Variable global para el constant buffer de la luz puntual
 ID3D11Buffer* g_pCBPointLight = NULL;
@@ -278,58 +273,32 @@ HRESULT InitDevice()
       ("Failed to initialize IndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
   }
-  D3D11_BUFFER_DESC bd;
-  ZeroMemory(&bd, sizeof(bd));
-  //bd.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(SimpleVertex) * 24;
-  //bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  //bd.CPUAccessFlags = 0;
-  D3D11_SUBRESOURCE_DATA InitData;
-  ZeroMemory(&InitData, sizeof(InitData));
-  //InitData.pSysMem = vertices;
-  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pVertexBuffer);
-  //if (FAILED(hr))
-  //  return hr;
-
-  // Configurar el vertex buffer para el cubo
-  //UINT stride = sizeof(SimpleVertex);
-  //UINT offset = 0;
-  //g_deviceContext.m_deviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-  // 
-  // Crear index buffer para el cubo
-
-  //bd.Usage = D3D11_USAGE_DEFAULT;
-  //bd.ByteWidth = sizeof(WORD) * 36;
-  //bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  //bd.CPUAccessFlags = 0;
-  //InitData.pSysMem = indices;
-  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pIndexBuffer);
-  //if (FAILED(hr))
-  //  return hr;
-
-  //g_deviceContext.m_deviceContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
 
   // Establecer topología primitiva
   g_deviceContext.m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Crear los constant buffers
-  bd.Usage = D3D11_USAGE_DEFAULT;
-  bd.ByteWidth = sizeof(CBNeverChanges);
-  bd.BindFlags = D3D11_BIND_CONSTANT_BUFFER;
-  bd.CPUAccessFlags = 0;
-  hr = g_device.CreateBuffer(&bd, NULL, &g_pCBNeverChanges);
-  if (FAILED(hr))
+  hr = m_neverChanges.init(g_device, sizeof(CBNeverChanges));
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize NeverChanges Buffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
+  }
 
-  bd.ByteWidth = sizeof(CBChangeOnResize);
-  hr = g_device.CreateBuffer(&bd, NULL, &g_pCBChangeOnResize);
-  if (FAILED(hr))
+  hr = m_changeOnResize.init(g_device, sizeof(CBChangeOnResize));
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize ChangeOnResize Buffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
+  }
 
-  bd.ByteWidth = sizeof(CBChangesEveryFrame);
-  hr = g_device.CreateBuffer(&bd, NULL, &g_pCBChangesEveryFrame);
-  if (FAILED(hr))
+  hr = m_changeEveryFrame.init(g_device, sizeof(CBChangesEveryFrame));
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+
+      ("Failed to initialize ChangesEveryFrame Buffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
+  }
 
   // Cargar la textura
   hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "seafloor.dds", NULL, NULL, &g_pTextureRV, NULL);
@@ -358,15 +327,10 @@ HRESULT InitDevice()
   XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   g_View = XMMatrixLookAtLH(Eye, At, Up);
 
-  CBNeverChanges cbNeverChanges;
+  // Actualizar la matriz de proyección
   cbNeverChanges.mView = XMMatrixTranspose(g_View);
-  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBNeverChanges, 0, NULL, &cbNeverChanges, 0, 0);
-
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
-
-  CBChangeOnResize cbChangesOnResize;
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
-  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBChangeOnResize, 0, NULL, &cbChangesOnResize, 0, 0);
 
   //------- CREACIÓN DE GEOMETRÍA DEL PLANO (suelo) -------//
   // Se amplían las dimensiones del plano para que sea más visible.
@@ -386,23 +350,56 @@ HRESULT InitDevice()
 
   g_planeIndexCount = 6;
 
-  bd.Usage = D3D11_USAGE_DEFAULT;
-  bd.ByteWidth = sizeof(SimpleVertex) * 4;
-  bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
-  bd.CPUAccessFlags = 0;
-  InitData.pSysMem = planeVertices;
-  hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneVertexBuffer);
-  if (FAILED(hr))
-    return hr;
+  // Store the vertex data
+  for (int i = 0; i < 4; i++) {
+    planeMesh.m_vertex.push_back(planeVertices[i]);
+  }
+  // Store the index data
+  for (int i = 0; i < 6; i++) {
+    planeMesh.m_index.push_back(planeIndices[i]);
+  }
 
-  bd.Usage = D3D11_USAGE_DEFAULT;
-  bd.ByteWidth = sizeof(WORD) * g_planeIndexCount;
-  bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
-  bd.CPUAccessFlags = 0;
-  InitData.pSysMem = planeIndices;
-  hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneIndexBuffer);
-  if (FAILED(hr))
+  // Crear el vertex buffer y index buffer para el plano
+  hr = m_planeVertexBuffer.init(g_device, planeMesh, D3D11_BIND_VERTEX_BUFFER);
+
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize PlaneVertexBuffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
+  }
+
+  hr = m_planeIndexBuffer.init(g_device, planeMesh, D3D11_BIND_INDEX_BUFFER);
+
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize PlaneIndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
+  hr = m_constPlane.init(g_device, sizeof(CBChangesEveryFrame));
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize Plane Buffer. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
+  //bd.Usage = D3D11_USAGE_DEFAULT;
+  //bd.ByteWidth = sizeof(SimpleVertex) * 4;
+  //bd.BindFlags = D3D11_BIND_VERTEX_BUFFER;
+  //bd.CPUAccessFlags = 0;
+  //InitData.pSysMem = planeVertices;
+  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneVertexBuffer);
+  //if (FAILED(hr))
+  //  return hr;
+  //
+  //bd.Usage = D3D11_USAGE_DEFAULT;
+  //bd.ByteWidth = sizeof(WORD) * g_planeIndexCount;
+  //bd.BindFlags = D3D11_BIND_INDEX_BUFFER;
+  //bd.CPUAccessFlags = 0;
+  //InitData.pSysMem = planeIndices;
+  //hr = g_device.CreateBuffer(&bd, &InitData, &g_pPlaneIndexBuffer);
+  //if (FAILED(hr))
+  //  return hr;
 
   //------- COMPILAR SHADER DE SOMBRA -------//
   hr = g_shaderShadow.CreateShader(g_device, PIXEL_SHADER, "RabOneEngine.fx");
@@ -410,6 +407,13 @@ HRESULT InitDevice()
   if (FAILED(hr)) {
     ERROR("Main", "InitDevice",
       ("Failed to initialize Shadow Shader. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
+  hr = m_constShadow.init(g_device, sizeof(CBChangesEveryFrame));
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize Shadow Buffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
   }
 
@@ -453,15 +457,15 @@ void CleanupDevice()
   if (g_pShadowBlendState) g_pShadowBlendState->Release();
   if (g_pShadowDepthStencilState) g_pShadowDepthStencilState->Release();
   g_shaderShadow.destroy();
-  if (g_pPlaneVertexBuffer) g_pPlaneVertexBuffer->Release();
-  if (g_pPlaneIndexBuffer) g_pPlaneIndexBuffer->Release();
+  m_planeVertexBuffer.destroy();
+  m_planeIndexBuffer.destroy();
   if (g_pSamplerLinear) g_pSamplerLinear->Release();
   if (g_pTextureRV) g_pTextureRV->Release();
-  if (g_pCBNeverChanges) g_pCBNeverChanges->Release();
-  if (g_pCBChangeOnResize) g_pCBChangeOnResize->Release();
-  if (g_pCBChangesEveryFrame) g_pCBChangesEveryFrame->Release();
-  //if (g_pVertexBuffer) g_pVertexBuffer->Release();
-  //if (g_pIndexBuffer) g_pIndexBuffer->Release();
+  m_neverChanges.destroy();
+  m_changeOnResize.destroy();
+  m_changeEveryFrame.destroy();
+  m_constPlane.destroy();
+  m_constShadow.destroy();
   m_vertexBuffer.destroy();
   m_indexBuffer.destroy();
   g_shaderProgram.destroy();
@@ -522,6 +526,12 @@ void UpdateScene()
     t = (dwTimeCur - dwTimeStart) / 1000.0f;
   }
 
+  // Actualizar la matriz de proyección y vista
+  cbNeverChanges.mView = XMMatrixTranspose(g_View);
+  m_neverChanges.update(g_deviceContext, nullptr, 0, nullptr, &cbNeverChanges, 0, 0);
+  cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
+  m_changeOnResize.update(g_deviceContext, nullptr, 0, nullptr, &cbChangesOnResize, 0, 0);
+
   // --- Transformación del cubo ---
   // Parámetros del cubo:
   float cubePosX = 0.0f, cubePosY = 2.0f, cubePosZ = 0.0f;  // Ubicado 2 unidades arriba
@@ -558,6 +568,29 @@ void UpdateScene()
 
   // Combinar transformaciones para el plano
   g_PlaneWorld = planeTransMat * planeRotMat * planeScaleMat;
+
+  // Update Plane
+  cbPlane.mWorld = XMMatrixTranspose(g_PlaneWorld);
+  cbPlane.vMeshColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+  m_constPlane.update(g_deviceContext, nullptr, 0, nullptr, &cbPlane, 0, 0);
+
+  // Update cube
+  cb.mWorld = XMMatrixTranspose(g_World);
+  cb.vMeshColor = g_vMeshColor;
+  m_changeEveryFrame.update(g_deviceContext, nullptr, 0, nullptr, &cb, 0, 0);
+
+  // Update Shadow cube
+  float dot = g_LightPos.y;
+  XMMATRIX shadowMatrix = XMMATRIX(
+    dot, -g_LightPos.x, 0.0f, 0.0f,
+    0.0f, 0.0f, 0.0f, 0.0f,
+    0.0f, -g_LightPos.z, dot, 0.0f,
+    0.0f, -1.0f, 0.0f, dot
+  );
+  XMMATRIX shadowWorld = g_World * shadowMatrix;
+  cbShadow.mWorld = XMMatrixTranspose(shadowWorld);
+  cbShadow.vMeshColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
+  m_constShadow.update(g_deviceContext, nullptr, 0, nullptr, &cbShadow, 0, 0);
 }
 
 //--------------------------------------------------------------------------------------
@@ -566,7 +599,6 @@ void UpdateScene()
 void RenderScene()
 {
   // Limpiar el back buffer y el depth buffer
-  float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
   g_renderTargetView.render(g_deviceContext, g_depthStencilView, 1, ClearColor);
 
   // Set Viewport
@@ -577,84 +609,53 @@ void RenderScene()
   // Configurar los buffers y shaders para el pipeline
   g_shaderProgram.render(g_deviceContext);
 
-
-  UINT stride = sizeof(SimpleVertex);
-  UINT offset = 0;
+  // Asignar buffers constantes
+  m_neverChanges.render(g_deviceContext, 0, 1);
+  m_changeOnResize.render(g_deviceContext, 1, 1);
 
   //------------- Renderizar el plano (suelo) -------------//
-  g_deviceContext.m_deviceContext->IASetVertexBuffers(0, 1, &g_pPlaneVertexBuffer, &stride, &offset);
-  g_deviceContext.m_deviceContext->IASetIndexBuffer(g_pPlaneIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-  XMMATRIX planeWorld = XMMatrixIdentity();
-  // Renderizar el plano (suelo)
-  // Renderizar el plano (suelo)
-  CBChangesEveryFrame cbPlane;
-  cbPlane.mWorld = XMMatrixTranspose(g_PlaneWorld);
-  cbPlane.vMeshColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cbPlane, 0, 0);
-  // ... Continuar con el renderizado (setear shaders, constantes, etc.)
+    // Asignar buffers Vertex e Index
+  m_planeVertexBuffer.render(g_deviceContext, 0, 1);
+  m_planeIndexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
 
-  // g_deviceContext.m_deviceContext->VSSetShader(g_pVertexShader, NULL, 0);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(0, 1, &g_pCBNeverChanges);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(1, 1, &g_pCBChangeOnResize);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(2, 1, &g_pCBChangesEveryFrame);
-  // g_deviceContext.m_deviceContext->PSSetShader(g_pPixelShader, NULL, 0);
-  g_deviceContext.m_deviceContext->PSSetConstantBuffers(2, 1, &g_pCBChangesEveryFrame);
+  // Asignar buffers constantes
+  m_constPlane.render(g_deviceContext, 2, 1);
+  m_constPlane.render(g_deviceContext, 2, 1, true);
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
   g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(g_planeIndexCount, 0, 0);
+  g_deviceContext.m_deviceContext->DrawIndexed(planeMesh.m_index.size(), 0, 0);
 
   //------------- Renderizar el cubo (normal) -------------//
-  CBChangesEveryFrame cb;
-  cb.mWorld = XMMatrixTranspose(g_World);
-  cb.vMeshColor = g_vMeshColor;
-  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cb, 0, 0);
-
+  // Asignar buffers Vertex e Index
   m_vertexBuffer.render(g_deviceContext, 0, 1);
 
-  //g_deviceContext.m_deviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-  //g_deviceContext.m_deviceContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
   m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
 
-  // g_deviceContext.m_deviceContext->VSSetShader(g_pVertexShader, NULL, 0);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(0, 1, &g_pCBNeverChanges);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(1, 1, &g_pCBChangeOnResize);
-  g_deviceContext.m_deviceContext->VSSetConstantBuffers(2, 1, &g_pCBChangesEveryFrame);
-  // g_deviceContext.m_deviceContext->PSSetShader(g_pPixelShader, NULL, 0);
-  g_deviceContext.m_deviceContext->PSSetConstantBuffers(2, 1, &g_pCBChangesEveryFrame);
+  // Asignar buffers constantes
+  m_changeEveryFrame.render(g_deviceContext, 2, 1);
+  m_changeEveryFrame.render(g_deviceContext, 2, 1, true);
+
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
   g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(36, 0, 0);
+  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
 
   //------------- Renderizar la sombra del cubo -------------//
-  float dot = g_LightPos.y;
-  XMMATRIX shadowMatrix = XMMATRIX(
-    dot, -g_LightPos.x, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, -g_LightPos.z, dot, 0.0f,
-    0.0f, -1.0f, 0.0f, dot
-  );
-  XMMATRIX shadowWorld = g_World * shadowMatrix;
-  CBChangesEveryFrame cbShadow;
-  cbShadow.mWorld = XMMatrixTranspose(shadowWorld);
-  cbShadow.vMeshColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
-  g_deviceContext.m_deviceContext->UpdateSubresource(g_pCBChangesEveryFrame, 0, NULL, &cbShadow, 0, 0);
-  // g_deviceContext.m_deviceContext->PSSetShader(g_pShadowPixelShader, NULL, 0);
   g_shaderShadow.render(g_deviceContext, PIXEL_SHADER);
-  float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
+
   g_deviceContext.m_deviceContext->OMSetBlendState(g_pShadowBlendState, blendFactor, 0xffffffff);
   g_deviceContext.m_deviceContext->OMSetDepthStencilState(g_pShadowDepthStencilState, 0);
 
+  // Asignar buffers Vertex e Index
   m_vertexBuffer.render(g_deviceContext, 0, 1);
-
-  //g_deviceContext.m_deviceContext->IASetVertexBuffers(0, 1, &g_pVertexBuffer, &stride, &offset);
-
   m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
 
-  //g_deviceContext.m_deviceContext->IASetIndexBuffer(g_pIndexBuffer, DXGI_FORMAT_R16_UINT, 0);
-  g_deviceContext.m_deviceContext->DrawIndexed(36, 0, 0);
+  // Asignar buffers constantes
+  m_constShadow.render(g_deviceContext, 2, 1, true);
+
+  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
+
   g_deviceContext.m_deviceContext->OMSetBlendState(NULL, blendFactor, 0xffffffff);
   g_deviceContext.m_deviceContext->OMSetDepthStencilState(NULL, 0);
-  // g_deviceContext.m_deviceContext->PSSetShader(g_pPixelShader, NULL, 0);
 
   // Presentar el back buffer al front buffer
   g_swapChain.present();
