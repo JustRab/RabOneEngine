@@ -136,8 +136,7 @@ ShaderProgram::CreateShader(Device& device, ShaderType type) {
 }
 
 HRESULT
-ShaderProgram::CreateShader(Device& device, ShaderType type, 
-													  const std::string& fileName) {
+ShaderProgram::CreateShader(Device& device, ShaderType type, const std::string& fileName) {
 	if (!device.m_device) {
 		ERROR("ShaderProgram", "init", "Device is null.");
 		return E_POINTER;
