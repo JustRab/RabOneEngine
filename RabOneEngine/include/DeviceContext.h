@@ -84,6 +84,7 @@ public:
                     ID3D11RenderTargetView* const* ppRenderTargetViews,
                     ID3D11DepthStencilView* pDepthStencilView);
 
+public:
   /**
    * @brief Pointer to the underlying Direct3D device context.
    */

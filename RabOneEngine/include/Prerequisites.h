@@ -111,3 +111,9 @@ enum
   PNG = 1, ///< Portable Network Graphics format.
   JPG = 2  ///< JPEG image format.
 };
+
+enum
+ShaderType {
+  VERTEX_SHADER = 0, ///< Vertex shader type.
+  PIXEL_SHADER = 1,  ///< Pixel shader type.
+};
