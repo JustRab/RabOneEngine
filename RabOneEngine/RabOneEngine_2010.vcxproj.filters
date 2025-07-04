@@ -56,6 +56,18 @@
     <ClInclude Include="include\ShaderProgram.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="include\Buffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\MeshComponent.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\BlendState.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\DepthStencilState.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="RabOneEngine.cpp" />
@@ -90,6 +102,15 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="src\ShaderProgram.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Buffer.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\BlendState.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\DepthStencilState.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
