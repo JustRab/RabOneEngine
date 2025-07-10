@@ -15,6 +15,7 @@
 #include "BlendState.h"
 #include "DepthStencilState.h"
 #include "UserInterface.h"
+#include "ModelLoader.h"
 
 /**
  * @class BaseApp
@@ -22,13 +23,14 @@
  *
  * This class serves as the foundation for applications, managing the main lifecycle and resource handling.
  */
-class
+class 
 BaseApp {
 public:
   /**
    * @brief Constructs a new BaseApp instance.
    */
   BaseApp() = default;
+
   /**
    * @brief Destroys the BaseApp instance and releases any held resources.
    */
@@ -38,25 +40,25 @@ public:
    * @brief Initializes the application by setting up the necessary resources.
    * @return HRESULT indicating success or failure of initialization.
    */
-  HRESULT
+  HRESULT 
   init();
 
   /**
    * @brief Updates the application logic each frame.
    */
-  void
+  void 
   update();
 
   /**
    * @brief Renders the application content to the screen.
    */
-  void
+  void 
   render();
 
   /**
    * @brief Releases all resources and cleans up the application to free memory before exiting.
    */
-  void 
+  void
   destroy();
 
   /**
@@ -68,7 +70,7 @@ public:
    * @param wndproc Window procedure function pointer.
    * @return Application exit code.
    */
-  int
+  int 
   run(HINSTANCE hInstance,
       HINSTANCE hPrevInstance,
       LPWSTR lpCmdLine,
@@ -76,56 +78,251 @@ public:
       WNDPROC wndproc);
 
 private:
-  //Customs
+  // --- Core Engine Components ---
+
+  /**
+   * @brief Main application window.
+   */
   Window g_window;
+
+  /**
+   * @brief Direct3D device for resource creation and management.
+   */
   Device g_device;
+
+  /**
+   * @brief Swap chain for presenting rendered frames.
+   */
   SwapChain g_swapChain;
+
+  /**
+   * @brief Device context for issuing rendering commands.
+   */
   DeviceContext g_deviceContext;
+
+  /**
+   * @brief Back buffer texture.
+   */
   Texture g_backBuffer;
+
+  /**
+   * @brief Render target view for the back buffer.
+   */
   RenderTargetView g_renderTargetView;
+
+  /**
+   * @brief Depth-stencil texture.
+   */
   Texture g_depthStencil;
+
+  /**
+   * @brief Depth-stencil view.
+   */
   DepthStencilView g_depthStencilView;
+
+  /**
+   * @brief Viewport configuration.
+   */
   Viewport g_viewport;
+
+  /**
+   * @brief Main shader program.
+   */
   ShaderProgram g_shaderProgram;
+
+  /**
+   * @brief Shader program used for shadow rendering.
+   */
   ShaderProgram g_shaderShadow;
+
+  /**
+   * @brief Blend state for shadow rendering.
+   */
   BlendState g_shadowBlendState;
+
+  /**
+   * @brief Depth-stencil state for shadow rendering.
+   */
   DepthStencilState g_shadowDepthStencilState;
+
+  /**
+   * @brief User interface manager.
+   */
   UserInterface g_userInterface;
 
-  // Camera Buffers
+  /**
+   * @brief Model loader for loading 3D models.
+   */
+  ModelLoader m_loader;
+
+  // --- Camera Buffers ---
+
+  /**
+   * @brief Constant buffer for data that never changes.
+   */
   Buffer m_neverChanges;
+
+  /**
+   * @brief Constant buffer for data that changes on window resize.
+   */
   Buffer m_changeOnResize;
 
-  // Cube Buffers
+  // --- Cube Buffers ---
+
+  /**
+   * @brief Vertex buffer for the cube.
+   */
   Buffer m_vertexBuffer;
+
+  /**
+   * @brief Index buffer for the cube.
+   */
   Buffer m_indexBuffer;
+
+  /**
+   * @brief Constant buffer for data that changes every frame (cube).
+   */
   Buffer m_changeEveryFrame;
-  // Cube Shadow Buffers
+
+  // --- Cube Shadow Buffers ---
+
+  /**
+   * @brief Constant buffer for shadow rendering (cube).
+   */
   Buffer m_constShadow;
 
-  // Plane Buffers
+  // --- Plane Buffers ---
+
+  /**
+   * @brief Vertex buffer for the plane.
+   */
   Buffer m_planeVertexBuffer;
+
+  /**
+   * @brief Index buffer for the plane.
+   */
   Buffer m_planeIndexBuffer;
+
+  /**
+   * @brief Constant buffer for the plane.
+   */
   Buffer m_constPlane;
 
-  // Variable global para el constant buffer de la luz puntual
+  // --- Texture and Sampler Resources ---
+
+  /**
+   * @brief Shader resource view for the cube texture.
+   */
   ID3D11ShaderResourceView* g_pTextureRV = NULL;
+
+  /**
+   * @brief Sampler state for the cube texture.
+   */
   ID3D11SamplerState* g_pSamplerLinear = NULL;
-  XMMATRIX g_World;         // Para el cubo
-  XMMATRIX g_PlaneWorld;    // Para el plano
-  XMMATRIX                            g_View;
-  XMMATRIX                            g_Projection;
 
-  //----- Variables agregadas para el plano y sombras -----//
-  UINT                                g_planeIndexCount = 0;
+  /**
+   * @brief Shader resource view for the plane texture.
+   */
+  ID3D11ShaderResourceView* g_pPlaneTextureRV = NULL;
 
+  /**
+   * @brief Sampler state for the plane texture.
+   */
+  ID3D11SamplerState* g_pPlaneSamplerLinear = NULL;
+
+  // --- Transformation Matrices ---
+
+  /**
+   * @brief World matrix for the cube.
+   */
+  XMMATRIX g_World;
+
+  /**
+   * @brief World matrix for the plane.
+   */
+  XMMATRIX g_PlaneWorld;
+
+  /**
+   * @brief View matrix.
+   */
+  XMMATRIX g_View;
+
+  /**
+   * @brief Projection matrix.
+   */
+  XMMATRIX g_Projection;
+
+  // --- Plane and Shadow Variables ---
+
+  /**
+   * @brief Index count for the plane mesh.
+   */
+  UINT g_planeIndexCount = 0;
+
+  // --- Rendering State ---
+
+  /**
+   * @brief Color used to clear the render target.
+   */
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
+
+  /**
+   * @brief Blend factor for blending operations.
+   */
   float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
+
+  // --- Mesh Components ---
+
+  /**
+   * @brief Mesh component for the cube.
+   */
   MeshComponent cubeMesh;
+
+  /**
+   * @brief Mesh component for the plane.
+   */
   MeshComponent planeMesh;
+
+  // --- Constant Buffer Structures ---
+
+  /**
+   * @brief Constant buffer for data that never changes.
+   */
   CBNeverChanges cbNeverChanges;
+
+  /**
+   * @brief Constant buffer for data that changes on window resize.
+   */
   CBChangeOnResize cbChangesOnResize;
+
+  /**
+   * @brief Constant buffer for the plane (per-frame changes).
+   */
   CBChangesEveryFrame cbPlane;
+
+  /**
+   * @brief Constant buffer for the cube (per-frame changes).
+   */
   CBChangesEveryFrame cb;
+
+  /**
+   * @brief Constant buffer for shadow rendering (per-frame changes).
+   */
   CBChangesEveryFrame cbShadow;
+
+public:
+  /**
+   * @brief Position of the main object or camera in world space.
+   */
+  XMFLOAT3 position;
+
+  /**
+   * @brief Rotation of the main object or camera in world space.
+   */
+  XMFLOAT3 rotation;
+
+  /**
+   * @brief Scale of the main object or camera in world space.
+   */
+  XMFLOAT3 scale;
 };

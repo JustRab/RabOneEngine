@@ -2,6 +2,7 @@
 #include "Window.h"
 #include "Device.h"
 #include "DeviceContext.h"
+#include "BaseApp.h"
 
 void
 UserInterface::init(void* window,
@@ -63,62 +64,54 @@ UserInterface::destroy() {
 void
 UserInterface::setupGUIStyle() {
   ImGuiStyle& style = ImGui::GetStyle();
-
-  // Ajuste de bordes
-  style.WindowBorderSize = 2.0f;
-  style.FrameBorderSize = 2.0f;
-  style.WindowRounding = 4.0f;
-  style.FrameRounding = 4.0f;
-  style.ScrollbarRounding = 3.0f;
-  style.GrabRounding = 3.0f;
-
-  // Colores con mayor contraste
-  ImVec4 yellow = ImVec4(0.95f, 0.75f, 0.05f, 1.00f);       // Amarillo principal con m�s brillo
-  ImVec4 yellowHover = ImVec4(1.00f, 0.7f, 0.15f, 1.00f);   // Amarillo m�s oscuro al hacer hover
-  ImVec4 yellowActive = ImVec4(1.00f, 0.5f, 0.1f, 1.00f);   // Amarillo tirando a naranja al hacer clic
-
-  ImVec4 darkBlue = ImVec4(0.05f, 0.05f, 0.2f, 1.00f);        // Azul oscuro m�s profundo para el t�tulo
-  ImVec4 darkBlueActive = ImVec4(0.1f, 0.1f, 0.3f, 1.00f);    // Azul m�s brillante al estar activo
-
   ImVec4* colors = style.Colors;
 
-  // Fondo de la ventana m�s oscuro
-  colors[ImGuiCol_WindowBg] = ImVec4(0.05f, 0.08f, 0.08f, 1.00f);
+  // Paleta basada en verde lima, naranja y blanco brillante
+  colors[ImGuiCol_Text] = ImVec4(0.95f, 1.00f, 0.95f, 1.00f);
+  colors[ImGuiCol_WindowBg] = ImVec4(0.10f, 0.15f, 0.10f, 1.00f); // Verde oscuro
+  colors[ImGuiCol_ChildBg] = ImVec4(0.12f, 0.18f, 0.12f, 1.00f);
+  colors[ImGuiCol_Border] = ImVec4(0.30f, 0.60f, 0.30f, 0.60f); // Verde claro
+  colors[ImGuiCol_FrameBg] = ImVec4(0.16f, 0.26f, 0.16f, 1.00f);
+  colors[ImGuiCol_FrameBgHovered] = ImVec4(0.20f, 0.35f, 0.20f, 1.00f);
+  colors[ImGuiCol_FrameBgActive] = ImVec4(0.25f, 0.40f, 0.25f, 1.00f);
+  colors[ImGuiCol_TitleBg] = ImVec4(0.12f, 0.20f, 0.12f, 1.00f);
+  colors[ImGuiCol_TitleBgActive] = ImVec4(0.20f, 0.35f, 0.20f, 1.00f);
 
-  // T�tulos con azul oscuro
-  colors[ImGuiCol_TitleBg] = darkBlue;
-  colors[ImGuiCol_TitleBgActive] = darkBlueActive;
-  colors[ImGuiCol_TitleBgCollapsed] = ImVec4(0.04f, 0.04f, 0.2f, 1.00f);
+  // Botones y elementos activos en naranja
+  colors[ImGuiCol_Button] = ImVec4(1.00f, 0.60f, 0.10f, 1.00f); // Naranja
+  colors[ImGuiCol_ButtonHovered] = ImVec4(1.00f, 0.70f, 0.20f, 1.00f);
+  colors[ImGuiCol_ButtonActive] = ImVec4(1.00f, 0.80f, 0.30f, 1.00f);
 
-  // Bordes con amarillo m�s brillante
-  colors[ImGuiCol_Border] = yellow;
+  colors[ImGuiCol_CheckMark] = ImVec4(1.00f, 0.80f, 0.30f, 1.00f);
+  colors[ImGuiCol_SliderGrab] = ImVec4(0.60f, 1.00f, 0.30f, 1.00f);
+  colors[ImGuiCol_SliderGrabActive] = ImVec4(0.70f, 1.00f, 0.40f, 1.00f);
 
-  // Elementos interactivos con mayor contraste
-  colors[ImGuiCol_FrameBg] = ImVec4(0.12f, 0.12f, 0.15f, 1.00f);
-  colors[ImGuiCol_FrameBgHovered] = yellowHover;
-  colors[ImGuiCol_FrameBgActive] = yellowActive;
+  colors[ImGuiCol_Header] = ImVec4(0.30f, 0.80f, 0.30f, 0.70f);
+  colors[ImGuiCol_HeaderHovered] = ImVec4(0.40f, 0.90f, 0.40f, 0.80f);
+  colors[ImGuiCol_HeaderActive] = ImVec4(0.50f, 1.00f, 0.50f, 1.00f);
 
-  // Botones
-  colors[ImGuiCol_Button] = ImVec4(0.2f, 0.2f, 0.2f, 1.00f);  // Fondo m�s oscuro para resaltar el amarillo al pasar hover
-  colors[ImGuiCol_ButtonHovered] = yellowHover;
-  colors[ImGuiCol_ButtonActive] = yellowActive;
+  colors[ImGuiCol_Separator] = ImVec4(0.40f, 0.80f, 0.40f, 0.50f);
+  colors[ImGuiCol_ResizeGrip] = ImVec4(1.00f, 0.50f, 0.00f, 0.40f);
+  colors[ImGuiCol_ResizeGripHovered] = ImVec4(1.00f, 0.65f, 0.20f, 0.70f);
+  colors[ImGuiCol_ResizeGripActive] = ImVec4(1.00f, 0.80f, 0.40f, 1.00f);
 
-  // Checkboxes y sliders
-  colors[ImGuiCol_CheckMark] = yellow;
-  colors[ImGuiCol_SliderGrab] = yellow;
-  colors[ImGuiCol_SliderGrabActive] = yellowHover;
+  // Tabs
+  colors[ImGuiCol_Tab] = ImVec4(0.18f, 0.28f, 0.18f, 0.80f);  // Verde oscuro translúcido
+  colors[ImGuiCol_TabHovered] = ImVec4(1.00f, 0.65f, 0.10f, 0.85f);  // Naranja brillante
+  colors[ImGuiCol_TabActive] = ImVec4(1.00f, 0.80f, 0.30f, 1.00f);  // Naranja más clara
+  colors[ImGuiCol_TabUnfocused] = ImVec4(0.10f, 0.18f, 0.10f, 0.60f);  // Más apagado
+  colors[ImGuiCol_TabUnfocusedActive] = ImVec4(0.24f, 0.36f, 0.24f, 0.85f);  // Verde con brillo tenue
 
-  // Headers
-  colors[ImGuiCol_Header] = darkBlue;
-  colors[ImGuiCol_HeaderHovered] = ImVec4(0.0f, 0.45f, 0.65f, 1.0f); // Azul m�s claro
-  colors[ImGuiCol_HeaderActive] = darkBlueActive;
+  // Estilo visual
+  style.WindowRounding = 10.0f;
+  style.FrameRounding = 8.0f;
+  style.GrabRounding = 8.0f;
+  style.ScrollbarRounding = 6.0f;
 
-  // L�neas de gr�ficos
-  colors[ImGuiCol_PlotLines] = yellow;
-  colors[ImGuiCol_PlotHistogram] = yellow;
-
-  // Textos
-  colors[ImGuiCol_Text] = ImVec4(0.95f, 0.95f, 0.95f, 1.00f);  // Texto m�s claro para mejor visibilidad
+  style.WindowPadding = ImVec2(12, 12);
+  style.FramePadding = ImVec2(8, 6);
+  style.ItemSpacing = ImVec2(10, 8);
+  style.ScrollbarSize = 16.0f;
 }
 
 void
@@ -128,10 +121,22 @@ UserInterface::GUITab(const std::string& tabName) {
 }
 
 void
+UserInterface::TransformGUI(BaseApp& g_bApp) {
+
+  ImGui::Begin("Transform");
+
+  ImGui::DragFloat3("Position", &g_bApp.position.x, 0.1f);
+  ImGui::DragFloat3("Rotation", &g_bApp.rotation.x, 0.1f);
+  ImGui::DragFloat3("Scale", &g_bApp.scale.x, 0.1f);
+
+  ImGui::End();
+}
+
+void
 UserInterface::vec3Control(const std::string& label,
-  float* values,
-  float resetValues,
-  float columnWidth) {
+                           float* values,
+                           float resetValues,
+                           float columnWidth) {
   ImGuiIO& io = ImGui::GetIO();
   auto boldFont = io.Fonts->Fonts[0];
 

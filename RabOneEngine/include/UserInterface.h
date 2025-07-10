@@ -5,6 +5,7 @@
 class Window;
 class Device;
 class DeviceContext;
+class BaseApp;
 
 class
 UserInterface {
@@ -54,6 +55,12 @@ public:
    */
   void
   GUITab(const std::string& tabName);
+
+  /**
+   * @brief Place holder method, contains the user interface components to be displayed in the ImGui tab
+   */
+  void
+  TransformGUI(BaseApp& g_bApp);
 
   /**
    * @brief Allows you to manipulate three float values in the GUI
