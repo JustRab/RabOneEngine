@@ -296,16 +296,19 @@ BaseApp::init() {
     return hr;
   }
 
+  g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
 
   return S_OK;
-
-
-  return E_NOTIMPL;
 }
 
 // Actualiza el estado de la aplicación. Debe ser sobreescrito por clases derivadas.
 void
 BaseApp::update() {
+  // Actualizar la interfaz de usuario
+  g_userInterface.update();
+
+  g_userInterface.GUITab("RabOne Main");
+  g_userInterface.GUITab("Dock Testing");
   // Actualizar tiempo (mismo que antes)
   static float t = 0.0f;
   if (g_swapChain.m_driverType == D3D_DRIVER_TYPE_REFERENCE)
@@ -451,6 +454,8 @@ BaseApp::render() {
   g_shadowBlendState.render(g_deviceContext, blendFactor, 0xffffffff, true);
   g_shadowDepthStencilState.render(g_deviceContext, 0, true);
 
+  g_userInterface.render();
+
   // Presentar el back buffer al front buffer
   g_swapChain.present();
 }
@@ -481,6 +486,7 @@ BaseApp::destroy() {
   g_swapChain.destroy();
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->Release();
   if (g_device.m_device) g_device.m_device->Release();
+  g_userInterface.destroy();
 }
 
 // Ejecuta la aplicación, configurando el entorno y el bucle principal.
