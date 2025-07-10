@@ -14,6 +14,7 @@
 #include "MeshComponent.h"
 #include "BlendState.h"
 #include "DepthStencilState.h"
+#include "UserInterface.h"
 
 /**
  * @class BaseApp
@@ -89,6 +90,7 @@ private:
   ShaderProgram g_shaderShadow;
   BlendState g_shadowBlendState;
   DepthStencilState g_shadowDepthStencilState;
+  UserInterface g_userInterface;
 
   // Camera Buffers
   Buffer m_neverChanges;
