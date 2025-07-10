@@ -27,6 +27,10 @@
 #include <imgui_internal.h>
 #include "imgui_impl_win32.h"
 
+//--------------------------------------------------------------------------------------
+// External Library Includes
+//--------------------------------------------------------------------------------------
+#include "utilities/TSharedPointer.h"
 
 //--------------------------------------------------------------------------------------
 // MACROS
@@ -69,6 +73,23 @@
     }                                                         \
 }
 
+ /** 
+ * @brief Prints a debug warning message with the class name, method, and warning description.
+ * @param classObj Name of the class.
+ * @param method Name of the method.
+ * @param warningMSG Warning message or description.
+ */
+#define WARNING(classObj, method, warningMSG)                    \
+{                                                                \
+    try {                                                        \
+        std::wostringstream os_;                                 \
+        os_ << L"WARNING : " << classObj << L"::" << method      \
+            << L" : " << warningMSG << L"\n";                    \
+        OutputDebugStringW(os_.str().c_str());                   \
+    } catch (...) {                                              \
+        OutputDebugStringW(L"Failed to log warning message.\n"); \
+    }                                                            \
+ }
    //--------------------------------------------------------------------------------------
    // Estructuras
    //--------------------------------------------------------------------------------------
@@ -125,4 +146,13 @@ enum
 ShaderType {
   VERTEX_SHADER = 0, ///< Vertex shader type.
   PIXEL_SHADER = 1,  ///< Pixel shader type.
+};
+
+struct
+  LoadData {
+  std::string name; ///< Name of the file to load.
+  std::vector<SimpleVertex> vertex; ///< Vector of vertices.
+  std::vector<unsigned int> index; ///< Vector of indices for the mesh.
+  int numVertex; ///< Count of vertices in the mesh.
+  int numIndex; ///< Count of indices in the mesh.
 };

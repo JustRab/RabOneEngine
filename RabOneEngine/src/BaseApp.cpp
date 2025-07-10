@@ -82,7 +82,30 @@ BaseApp::init() {
     return hr;
   }
 
-  // Crear vertex buffer y index buffer para el cubo
+  // Load Model
+  LoadData LD = m_loader.Load("models/koroGod.obj");
+
+  // Usar los datos del modelo en vez del cubo
+  cubeMesh.m_vertex = LD.vertex;
+  cubeMesh.m_index = LD.index;
+
+  // Ya no necesitas definir los vértices/índices del cubo manualmente
+
+  hr = m_vertexBuffer.init(g_device, cubeMesh, D3D11_BIND_VERTEX_BUFFER);
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize VertexBuffer. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
+  hr = m_indexBuffer.init(g_device, cubeMesh, D3D11_BIND_INDEX_BUFFER);
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice",
+      ("Failed to initialize IndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
+  /*// Crear vertex buffer y index buffer para el cubo
   SimpleVertex vertices[] = {
       { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
       { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
@@ -157,7 +180,7 @@ BaseApp::init() {
     ERROR("Main", "InitDevice",
       ("Failed to initialize IndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
     return hr;
-  }
+  }*/
 
   // Establecer topología primitiva
   g_deviceContext.m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
@@ -184,12 +207,17 @@ BaseApp::init() {
     return hr;
   }
 
-  // Cargar la textura
-  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "seafloor.dds", NULL, NULL, &g_pTextureRV, NULL);
+  // Cargar la textura del modelo
+  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "textures/korotexture.png", NULL, NULL, &g_pTextureRV, NULL);
   if (FAILED(hr))
     return hr;
 
-  // Crear el sampler state
+  // Cargar la textura del plano
+  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "seafloor.dds", NULL, NULL, &g_pPlaneTextureRV, NULL);
+  if (FAILED(hr))
+    return hr;
+
+  // Crear el sampler state para ambos
   D3D11_SAMPLER_DESC sampDesc;
   ZeroMemory(&sampDesc, sizeof(sampDesc));
   sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
@@ -200,6 +228,9 @@ BaseApp::init() {
   sampDesc.MinLOD = 0;
   sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
   hr = g_device.m_device->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
+  if (FAILED(hr))
+    return hr;
+  hr = g_device.m_device->CreateSamplerState(&sampDesc, &g_pPlaneSamplerLinear);
   if (FAILED(hr))
     return hr;
 
@@ -296,6 +327,11 @@ BaseApp::init() {
     return hr;
   }
 
+  // Initialize the world matrices
+  scale.x = 1.0f;
+  scale.y = 1.0f;
+  scale.z = 1.0f;
+  
   g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
 
   return S_OK;
@@ -308,7 +344,8 @@ BaseApp::update() {
   g_userInterface.update();
 
   g_userInterface.GUITab("RabOne Main");
-  g_userInterface.GUITab("Dock Testing");
+  g_userInterface.TransformGUI(*this);
+
   // Actualizar tiempo (mismo que antes)
   static float t = 0.0f;
   if (g_swapChain.m_driverType == D3D_DRIVER_TYPE_REFERENCE)
@@ -332,12 +369,12 @@ BaseApp::update() {
 
   // --- Transformación del cubo ---
   // Parámetros del cubo:
-  float cubePosX = 0.0f, cubePosY = 2.0f, cubePosZ = 0.0f;  // Ubicado 2 unidades arriba
-  float cubeScale = 1.0f;                                    // Escala uniforme
-  float cubeAngleX = 0.0f, cubeAngleY = t, cubeAngleZ = 0.0f;  // Rotación dinámica en Y
+  float cubePosX = position.x, cubePosY = position.y, cubePosZ = position.z;  // Ubicado 2 unidades arriba
+  //float cubeScale = 1.0f;                                    // Escala uniforme
+  float cubeAngleX = rotation.x, cubeAngleY = rotation.y, cubeAngleZ = rotation.z;  // Rotación dinámica en Y
 
   // Crear las matrices individuales
-  XMMATRIX cubeScaleMat = XMMatrixScaling(cubeScale, cubeScale, cubeScale);
+  XMMATRIX cubeScaleMat = XMMatrixScaling(scale.x, scale.y, scale.z);
   XMMATRIX cubeRotMat = XMMatrixRotationX(cubeAngleX) *
     XMMatrixRotationY(cubeAngleY) *
     XMMatrixRotationZ(cubeAngleZ);
@@ -411,16 +448,25 @@ BaseApp::render() {
   m_changeOnResize.render(g_deviceContext, 1, 1);
 
   //------------- Renderizar el plano (suelo) -------------//
-    // Asignar buffers Vertex e Index
   m_planeVertexBuffer.render(g_deviceContext, 0, 1);
   m_planeIndexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-
-  // Asignar buffers constantes
   m_constPlane.render(g_deviceContext, 2, 1);
   m_constPlane.render(g_deviceContext, 2, 1, true);
+  // Usa la textura y sampler del plano
+  g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pPlaneTextureRV);
+  g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pPlaneSamplerLinear);
+  g_deviceContext.m_deviceContext->DrawIndexed(planeMesh.m_index.size(), 0, 0);
+
+  //------------- Renderizar el modelo -------------//
+  m_vertexBuffer.render(g_deviceContext, 0, 1);
+  m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
+  m_changeEveryFrame.render(g_deviceContext, 2, 1);
+  m_changeEveryFrame.render(g_deviceContext, 2, 1, true);
+  // Usa la textura y sampler del modelo
   g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
   g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(planeMesh.m_index.size(), 0, 0);
+  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
+
 
   //------------- Renderizar el cubo (normal) -------------//
   // Asignar buffers Vertex e Index
