@@ -3,6 +3,9 @@
 XMFLOAT4                            g_LightPos(2.0f, 4.0f, -2.0f, 1.0f); // Posición de la luz
 XMFLOAT4                            g_vMeshColor(0.7f, 0.7f, 0.7f, 1.0f);
 
+Texture modelTexture;
+Texture planeTexture;
+
 // Inicializa
 HRESULT
 BaseApp::init() {
@@ -207,15 +210,19 @@ BaseApp::init() {
     return hr;
   }
 
-  // Cargar la textura del modelo
-  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "textures/korotexture.png", NULL, NULL, &g_pTextureRV, NULL);
+  // Cargar la textura del modelo usando la clase Texture
+  
+  hr = modelTexture.init(g_device, "textures/korotexture", PNG);
   if (FAILED(hr))
     return hr;
+  g_pTextureRV = modelTexture.m_textureFromImg;
 
-  // Cargar la textura del plano
-  hr = D3DX11CreateShaderResourceViewFromFile(g_device.m_device, "seafloor.dds", NULL, NULL, &g_pPlaneTextureRV, NULL);
+  // Cargar la textura del plano usando la clase Texture
+  hr = planeTexture.init(g_device, "textures/Default", PNG);
   if (FAILED(hr))
     return hr;
+  g_pPlaneTextureRV = planeTexture.m_textureFromImg;
+
 
   // Crear el sampler state para ambos
   D3D11_SAMPLER_DESC sampDesc;
@@ -328,9 +335,10 @@ BaseApp::init() {
   }
 
   // Initialize the world matrices
-  scale.x = 1.0f;
-  scale.y = 1.0f;
-  scale.z = 1.0f;
+  scale.x = 0.025f;
+  scale.y = 0.025f;
+  scale.z = 0.025f;
+  rotation.y = 3.5f; // Rotación inicial en Y
   
   g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
 
@@ -453,7 +461,8 @@ BaseApp::render() {
   m_constPlane.render(g_deviceContext, 2, 1);
   m_constPlane.render(g_deviceContext, 2, 1, true);
   // Usa la textura y sampler del plano
-  g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pPlaneTextureRV);
+  planeTexture.render(g_deviceContext, 0, 1);
+  //g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pPlaneTextureRV);
   g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pPlaneSamplerLinear);
   g_deviceContext.m_deviceContext->DrawIndexed(planeMesh.m_index.size(), 0, 0);
 
@@ -463,7 +472,8 @@ BaseApp::render() {
   m_changeEveryFrame.render(g_deviceContext, 2, 1);
   m_changeEveryFrame.render(g_deviceContext, 2, 1, true);
   // Usa la textura y sampler del modelo
-  g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
+  modelTexture.render(g_deviceContext, 0, 1);
+  //g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
   g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
   g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
 

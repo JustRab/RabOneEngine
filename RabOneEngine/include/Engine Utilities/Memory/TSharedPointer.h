@@ -1,7 +1,7 @@
-ï»¿/*
+/*
  * MIT License
  *
- * Copyright (c) 2024 Roberto Charreton
+ * Copyright (c) 2025 Roberto Charreton
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -30,11 +30,11 @@
 
 namespace EngineUtilities {
 	/**
-	 * @brief Clase TSharedPointer para manejar la gestiï¿½n de memoria compartida.
+	 * @brief Clase TSharedPointer para manejar la gestión de memoria compartida.
 	 *
 	 * La clase TSharedPointer gestiona la memoria de un objeto de tipo T y lleva un
-	 * recuento de referencias para permitir la comparticiï¿½n segura de un mismo objeto
-	 * en mï¿½ltiples instancias de TSharedPointer.
+	 * recuento de referencias para permitir la compartición segura de un mismo objeto
+	 * en múltiples instancias de TSharedPointer.
 	 */
 	template<typename T>
 	class TSharedPointer
@@ -99,7 +99,7 @@ namespace EngineUtilities {
 		}
 
 		/**
-		 * @brief Operador de asignaciï¿½n de copia.
+		 * @brief Operador de asignación de copia.
 		 *
 		 * Libera el objeto actual, copia el puntero y el recuento de referencias del otro
 		 * TSharedPointer, y aumenta el recuento de referencias.
@@ -129,7 +129,7 @@ namespace EngineUtilities {
 		}
 
 		/**
-		 * @brief Operador de asignaciï¿½n de movimiento.
+		 * @brief Operador de asignación de movimiento.
 		 *
 		 * Libera el objeto actual, transfiere la propiedad del puntero y el recuento de
 		 * referencias del otro TSharedPointer al actual.
@@ -172,7 +172,7 @@ namespace EngineUtilities {
 		}
 
 		/**
-		 * @brief Operador de desreferenciaciï¿½n.
+		 * @brief Operador de desreferenciación.
 		 *
 		 * @return Referencia al objeto gestionado.
 		 */
@@ -185,7 +185,7 @@ namespace EngineUtilities {
 		 */
 		T* operator->() const { return ptr; }
 
-		// Agregar una funciï¿½n para comprobar si el puntero es vï¿½lido
+		// Agregar una función para comprobar si el puntero es válido
 		operator bool() const {
 			return ptr != nullptr;
 		}
@@ -210,7 +210,7 @@ namespace EngineUtilities {
 		int* refCount; ///< Puntero al recuento de referencias.
 
 		/**
-		 * @brief Mï¿½todo swap.
+		 * @brief Método swap.
 		 *
 		 * Intercambia los datos de dos objetos TSharedPointer.
 		 *
@@ -256,24 +256,24 @@ namespace EngineUtilities {
 			}
 		}
 
-		// Mï¿½todo de conversiï¿½n para hacer cast dinï¿½mico
+		// Método de conversión para hacer cast dinámico
 		template<typename U>
 		TSharedPointer<U> dynamic_pointer_cast() const {
 			// Intenta convertir el puntero de tipo T a U
 			U* castedPtr = dynamic_cast<U*>(ptr);
 			if (castedPtr) {
-				// Si la conversiï¿½n es exitosa, devuelve un nuevo TSharedPointer<U>
+				// Si la conversión es exitosa, devuelve un nuevo TSharedPointer<U>
 				return TSharedPointer<U>(castedPtr, refCount);
 			}
 			else {
-				// Si falla la conversiï¿½n, devuelve un TSharedPointer<U> nulo
+				// Si falla la conversión, devuelve un TSharedPointer<U> nulo
 				return TSharedPointer<U>();
 			}
 		}
 	};
 
 	/**
-	 * @brief Funciï¿½n de utilidad para crear un TSharedPointer.
+	 * @brief Función de utilidad para crear un TSharedPointer.
 	 *
 	 * @tparam T Tipo del objeto gestionado.
 	 * @tparam Args Tipos de los argumentos del constructor del objeto gestionado.
@@ -286,3 +286,4 @@ namespace EngineUtilities {
 		return TSharedPointer<T>(new T(args...));
 	}
 }
+

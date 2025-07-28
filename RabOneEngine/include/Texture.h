@@ -105,4 +105,6 @@ public:
    * @brief Pointer to the shader resource view for the texture.
    */
   ID3D11ShaderResourceView* m_textureFromImg;
+
+  std::string m_textureName; ///< Name of the texture file.
 };
