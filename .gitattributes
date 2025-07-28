@@ -1,0 +1,2 @@
+RabOneEngine/lib/fbxlibs/libfbxsdk-mt.lib filter=lfs diff=lfs merge=lfs
+RabOneEngine/lib/fbxlibs/libfbxsdk-md.lib filter=lfs diff=lfs merge=lfs

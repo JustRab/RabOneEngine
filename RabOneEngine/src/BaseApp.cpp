@@ -82,14 +82,14 @@ BaseApp::init() {
     return hr;
   }
 
-  // Load Model
-  LoadData LD = m_loader.Load("models/koroGod.obj");
+  // Load Koromaru OBJ Model
+  LoadData LD = m_loader.LoadOBJModel("models/koroGod.obj");
 
   // Usar los datos del modelo en vez del cubo
   cubeMesh.m_vertex = LD.vertex;
   cubeMesh.m_index = LD.index;
 
-  // Ya no necesitas definir los vértices/índices del cubo manualmente
+  // Ya no es necesario definir los vértices/índices del cubo manualmente
 
   hr = m_vertexBuffer.init(g_device, cubeMesh, D3D11_BIND_VERTEX_BUFFER);
   if (FAILED(hr)) {

@@ -1,4 +1,6 @@
 #include "Prerequisites.h"
+#include "MeshComponent.h"
+#include "fbxsdk.h"
 #pragma once
 
 /**
@@ -45,5 +47,32 @@ public:
    * @param objFileName The path to the OBJ file to load.
    * @return LoadData structure containing the loaded mesh data.
    */
-  LoadData Load(std::string objFileName);
+  LoadData LoadOBJModel(std::string objFileName);
+
+  /* FBX MODEL LOADER*/
+  bool
+  InitializeFBXManager();
+
+  bool
+  LoadFBXModel(const std::string& fileName);
+
+  void
+  ProcessFBXNode(FbxNode* node);
+
+  void
+  ProcessFBXMesh(FbxNode* node);
+
+  void
+  ProcessFBXMaterials(FbxSurfaceMaterial* material);
+
+  std::vector<std::string>
+    GetTextureFileNames() const { return textureFileNames; }
+
+private:
+  FbxManager* lSdkManager;
+  FbxScene* lScene;
+  std::vector<std::string> textureFileNames;
+public:
+  std::string modelName;
+  std::vector<MeshComponent> meshes;
 };

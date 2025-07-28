@@ -435,10 +435,10 @@ namespace objl
 				 */
 		inline std::string tail(const std::string& in)
 		{
-			size_t token_start = in.find_first_not_of(" \t");
-			size_t space_start = in.find_first_of(" \t", token_start);
-			size_t tail_start = in.find_first_not_of(" \t", space_start);
-			size_t tail_end = in.find_last_not_of(" \t");
+			unsigned int token_start = in.find_first_not_of(" \t");
+			unsigned int space_start = in.find_first_of(" \t", token_start);
+			unsigned int tail_start = in.find_first_not_of(" \t", space_start);
+			unsigned int tail_end = in.find_last_not_of(" \t");
 			if (tail_start != std::string::npos && tail_end != std::string::npos)
 			{
 				return in.substr(tail_start, tail_end - tail_start + 1);
@@ -459,8 +459,8 @@ namespace objl
 		{
 			if (!in.empty())
 			{
-				size_t token_start = in.find_first_not_of(" \t");
-				size_t token_end = in.find_first_of(" \t", token_start);
+				unsigned int token_start = in.find_first_not_of(" \t");
+				unsigned int token_end = in.find_first_of(" \t", token_start);
 				if (token_start != std::string::npos && token_end != std::string::npos)
 				{
 					return in.substr(token_start, token_end - token_start);
