@@ -28,9 +28,12 @@
 #include "imgui_impl_win32.h"
 
 //--------------------------------------------------------------------------------------
-// External Library Includes
+// Third Party Libraries
 //--------------------------------------------------------------------------------------
-#include "utilities/TSharedPointer.h"
+#include "Engine Utilities/Memory/TSharedPointer.h"
+#include "Engine Utilities/Memory/TWeakPointer.h"
+#include "Engine Utilities/Memory/TUniquePtr.h"
+#include "Engine Utilities/Memory/TStaticPtr.h"
 
 //--------------------------------------------------------------------------------------
 // MACROS
@@ -149,10 +152,18 @@ ShaderType {
 };
 
 struct
-  LoadData {
+LoadData {
   std::string name; ///< Name of the file to load.
   std::vector<SimpleVertex> vertex; ///< Vector of vertices.
   std::vector<unsigned int> index; ///< Vector of indices for the mesh.
   int numVertex; ///< Count of vertices in the mesh.
   int numIndex; ///< Count of indices in the mesh.
+};
+
+enum
+ComponentType {
+  NONE = 0,     ///< Tipo de componente no especificado.
+  TRANSFORM = 1,///< Componente de transformación.
+  MESH = 2,     ///< Componente de malla.
+  MATERIAL = 3  ///< Componente de material.
 };
