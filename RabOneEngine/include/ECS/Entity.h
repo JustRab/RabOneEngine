@@ -24,7 +24,7 @@ public:
   * @param deltaTime Time elapsed since the last update.
   */
   virtual void
-  update(const float deltaTime) = 0;
+  update(const float deltaTime, DeviceContext& deviceContext) = 0;
 
   /**
   * @brief Virtual method to render the component.
