@@ -83,8 +83,7 @@ BaseApp::init() {
     return hr;
   }
 
-  // Load Koromaru OBJ Model
-  //LoadData LD = m_loader.LoadOBJModel("models/koroGod.obj");
+  // Set Koromaru OBJ Model
   g_AKoro = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
 
   if (!g_AKoro.isNull()) {
@@ -106,15 +105,15 @@ BaseApp::init() {
     g_AKoro->setTextures(KoroTextures);
 
     g_actors.push_back(g_AKoro);
-    g_AKoro->getComponent<Transform>()->setPosition(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
-    g_AKoro->getComponent<Transform>()->setRotation(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
-    g_AKoro->getComponent<Transform>()->setScale(EngineUtilities::Vector3(0.1f, 0.1f, 0.1f));
+    g_AKoro->getComponent<Transform>()->setTransform(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f),
+      EngineUtilities::Vector3(0.0f, 0.0f, 0.0f), EngineUtilities::Vector3(0.1f, 0.1f, 0.1f));
+    g_AKoro->setCastShadow(false);
   }
   else {
     ERROR("Main", "InitDevice", "Failed to create Koro actor.");
     return E_FAIL;
   }
-  
+
   // Set plane actor
   g_APlane = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
 
@@ -133,8 +132,6 @@ BaseApp::init() {
         0, 3, 2
     };
 
-    g_planeIndexCount = 6;
-
     // Store the vertex data
     for (int i = 0; i < 4; i++) {
       planeMesh.m_vertex.push_back(planeVertices[i]);
@@ -148,10 +145,10 @@ BaseApp::init() {
     planeMesh.m_numIndex = 6;
 
     // Cargar la textura
-    hr = g_planeTexture.init(g_device, "Textures/Default", DDS);
+    hr = g_planeTexture.init(g_device, "Textures/Default", PNG);
     if (FAILED(hr)) {
       ERROR("Main", "InitDevice",
-        ("Failed to initialize DrakePistol Texture. HRESULT: " + std::to_string(hr)).c_str());
+        ("Failed to initialize PlaneTexture Texture. HRESULT: " + std::to_string(hr)).c_str());
       return hr;
     }
     std::vector<MeshComponent> PlaneMeshes;
@@ -161,9 +158,10 @@ BaseApp::init() {
     g_APlane->SetMesh(g_device, PlaneMeshes);
     g_APlane->setTextures(PlaneTextures);
 
-    g_APlane->getComponent<Transform>()->setPosition(EngineUtilities::Vector3(0.0f, -5.0f, 0.0f));
-    g_APlane->getComponent<Transform>()->setRotation(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
-    g_APlane->getComponent<Transform>()->setScale(EngineUtilities::Vector3(1.0f, 1.0f, 1.0f));
+    g_APlane->getComponent<Transform>()->setTransform(EngineUtilities::Vector3(0.0f, -5.0f, 0.0f),
+      EngineUtilities::Vector3(0.0f, 0.0f, 0.0f),
+      EngineUtilities::Vector3(1.0f, 1.0f, 1.0f));
+    g_APlane->setCastShadow(false);
     g_actors.push_back(g_APlane);
   }
   else {
@@ -186,21 +184,6 @@ BaseApp::init() {
     return hr;
   }
 
-
-  // Crear el sampler state para ambos
-  D3D11_SAMPLER_DESC sampDesc;
-  ZeroMemory(&sampDesc, sizeof(sampDesc));
-  sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-  sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
-  sampDesc.MinLOD = 0;
-  sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-  hr = g_device.CreateSamplerState(&sampDesc, &m_pSamplerLinear);
-  if (FAILED(hr))
-    return hr;
-
   // Inicializar las matrices de mundo, vista y proyección
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
   XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
@@ -212,44 +195,6 @@ BaseApp::init() {
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
 
-
-  //------- COMPILAR SHADER DE SOMBRA -------//
-  hr = g_shaderShadow.CreateShader(g_device, PIXEL_SHADER, "RabOneEngine.fx");
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize Shadow Shader. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  hr = m_constShadow.init(g_device, sizeof(CBChangesEveryFrame));
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize Shadow Buffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  //------- CREAR ESTADOS DE BLENDING Y DEPTH STENCIL PARA LAS SOMBRAS -------//
-  hr = g_shadowBlendState.init(g_device);
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize Shadow Blend State. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  hr = g_shadowDepthStencilState.init(g_device, true, false);
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize Depth Stencil State. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  g_LightPos = XMFLOAT4(2.0f, 4.0f, -2.0f, 1.0f); // Posición de la luz
-
-  g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
-
-  return S_OK;
 }
 
 // Actualiza el estado de la aplicación. Debe ser sobreescrito por clases derivadas.
@@ -286,19 +231,6 @@ BaseApp::update() {
   for (auto& actor : g_actors) {
       actor->update(0, g_deviceContext);
   }
-
-  // Update Shadow cube
-  float dot = g_LightPos.y;
-  XMMATRIX shadowMatrix = XMMATRIX(
-    dot, -g_LightPos.x, 0.0f, 0.0f,
-    0.0f, 0.0f, 0.0f, 0.0f,
-    0.0f, -g_LightPos.z, dot, 0.0f,
-    0.0f, -1.0f, 0.0f, dot
-  );
-  XMMATRIX shadowWorld = g_World * shadowMatrix;
-  cbShadow.mWorld = XMMatrixTranspose(shadowWorld);
-  cbShadow.vMeshColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.5f);
-  m_constShadow.update(g_deviceContext, nullptr, 0, nullptr, &cbShadow, 0, 0);
 }
 
 // Renderiza la escena o interfaz de la aplicación.
@@ -316,7 +248,7 @@ BaseApp::render() {
   // Configurar los buffers y shaders para el pipeline
   g_shaderProgram.render(g_deviceContext);
 
-  // Asignar buffers constantes
+  // Asignar buffers constantes Camera
   m_neverChanges.render(g_deviceContext, 0, 1);
   m_changeOnResize.render(g_deviceContext, 1, 1);
 
@@ -324,25 +256,8 @@ BaseApp::render() {
   for (auto& actor : g_actors) {
     actor->render(g_deviceContext);
   }
-
-  //------------- Renderizar la sombra del cubo -------------//
-  g_shaderShadow.render(g_deviceContext, PIXEL_SHADER);
-
-  g_shadowBlendState.render(g_deviceContext, blendFactor, 0xffffffff);
-  g_shadowDepthStencilState.render(g_deviceContext, 0);
-
-  // Asignar buffers Vertex e Index
-  m_vertexBuffer.render(g_deviceContext, 0, 1);
-  m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-
-  // Asignar buffers constantes
-  m_constShadow.render(g_deviceContext, 2, 1, true);
-
-  //g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
-
-  g_shadowBlendState.render(g_deviceContext, blendFactor, 0xffffffff, true);
-  g_shadowDepthStencilState.render(g_deviceContext, 0, true);
-
+  
+  // Renderizar la interfaz de usuario
   g_userInterface.render();
 
   // Presentar el back buffer al front buffer
@@ -352,19 +267,9 @@ BaseApp::render() {
 // Libera los recursos utilizados por la aplicación. 
 void
 BaseApp::destroy() {
-  g_userInterface.destroy();
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
-
-  g_shadowBlendState.destroy();
-  g_shadowDepthStencilState.destroy();
-  g_shaderShadow.destroy();
-  if (g_pSamplerLinear) g_pSamplerLinear->Release();
-  if (g_pTextureRV) g_pTextureRV->Release();
   m_neverChanges.destroy();
   m_changeOnResize.destroy();;
-  m_constShadow.destroy();
-  m_vertexBuffer.destroy();
-  m_indexBuffer.destroy();
   g_shaderProgram.destroy();
   g_depthStencil.destroy();
   g_depthStencilView.destroy();
@@ -372,6 +277,7 @@ BaseApp::destroy() {
   g_swapChain.destroy();
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->Release();
   if (g_device.m_device) g_device.m_device->Release();
+  g_userInterface.destroy();
 }
 
 // Ejecuta la aplicación, configurando el entorno y el bucle principal.

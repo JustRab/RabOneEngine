@@ -125,9 +125,30 @@ UserInterface::TransformGUI(BaseApp& g_bApp) {
 
   ImGui::Begin("Transform");
 
-  ImGui::DragFloat3("Position", &g_bApp.position.x, 0.1f);
-  ImGui::DragFloat3("Rotation", &g_bApp.rotation.x, 0.1f);
-  ImGui::DragFloat3("Scale", &g_bApp.scale.x, 0.1f);
+  // Access the first actor's transform component for demonstration
+  // You may want to modify this to handle multiple actors or a selected actor
+  if (!g_bApp.g_actors.empty() && !g_bApp.g_actors[0].isNull()) {
+    auto transform = g_bApp.g_actors[0]->getComponent<Transform>();
+    if (transform) {
+      // Get current values
+      EngineUtilities::Vector3 position = transform->getPosition();
+      EngineUtilities::Vector3 rotation = transform->getRotation();
+      EngineUtilities::Vector3 scale = transform->getScale();
+
+      // Create ImGui controls
+      ImGui::DragFloat3("Position", &position.x, 0.1f);
+      ImGui::DragFloat3("Rotation", &rotation.x, 0.1f);
+      ImGui::DragFloat3("Scale", &scale.x, 0.1f);
+
+      // Update the transform component with new values
+      transform->setPosition(position);
+      transform->setRotation(rotation);
+      transform->setScale(scale);
+    }
+  }
+  else {
+    ImGui::Text("No actors available");
+  }
 
   ImGui::End();
 }

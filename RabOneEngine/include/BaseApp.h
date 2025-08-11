@@ -78,7 +78,7 @@ public:
       int nCmdShow,
       WNDPROC wndproc);
 
-private:
+public:
   // --- Core Engine Components ---
 
   /**
@@ -229,6 +229,5 @@ private:
   EngineUtilities::TSharedPointer<Actor> g_APlane; ///< Shared pointer to the plane actor in the scene.
   std::vector<EngineUtilities::TSharedPointer<Actor>> g_actors; ///< Vector of actors in the scene.
 
-  UINT g_planeIndexCount = 0; ///< Index count for the plane mesh.
   XMFLOAT4 g_LightPos; ///< Posición de la luz(2.0f, 4.0f, -2.0f, 1.0f)
 };
