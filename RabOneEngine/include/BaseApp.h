@@ -16,6 +16,8 @@
 #include "DepthStencilState.h"
 #include "UserInterface.h"
 #include "ModelLoader.h"
+#include "ECS/Actor.h"
+#include "SamplerState.h"
 
 /**
  * @class BaseApp
@@ -77,7 +79,7 @@ public:
       int nCmdShow,
       WNDPROC wndproc);
 
-private:
+public:
   // --- Core Engine Components ---
 
   /**
@@ -130,20 +132,15 @@ private:
    */
   ShaderProgram g_shaderProgram;
 
-  /**
-   * @brief Shader program used for shadow rendering.
-   */
-  ShaderProgram g_shaderShadow;
+  ///**
+  // * @brief Blend state for shadow rendering.
+  // */
+  //BlendState g_shadowBlendState;
 
-  /**
-   * @brief Blend state for shadow rendering.
-   */
-  BlendState g_shadowBlendState;
-
-  /**
-   * @brief Depth-stencil state for shadow rendering.
-   */
-  DepthStencilState g_shadowDepthStencilState;
+  ///**
+  // * @brief Depth-stencil state for shadow rendering.
+  // */
+  //DepthStencilState g_shadowDepthStencilState;
 
   /**
    * @brief User interface manager.
@@ -154,6 +151,11 @@ private:
    * @brief Model loader for loading 3D models.
    */
   ModelLoader m_loader;
+
+  /**
+   * @brief Sampler state for texture sampling.
+   */
+  SamplerState g_samplerState;
 
   // --- Camera Buffers ---
 
@@ -167,80 +169,13 @@ private:
    */
   Buffer m_changeOnResize;
 
-  // --- Cube Buffers ---
-
-  /**
-   * @brief Vertex buffer for the cube.
-   */
-  Buffer m_vertexBuffer;
-
-  /**
-   * @brief Index buffer for the cube.
-   */
-  Buffer m_indexBuffer;
-
-  /**
-   * @brief Constant buffer for data that changes every frame (cube).
-   */
-  Buffer m_changeEveryFrame;
-
-  // --- Cube Shadow Buffers ---
-
-  /**
-   * @brief Constant buffer for shadow rendering (cube).
-   */
-  Buffer m_constShadow;
-
-  // --- Plane Buffers ---
-
-  /**
-   * @brief Vertex buffer for the plane.
-   */
-  Buffer m_planeVertexBuffer;
-
-  /**
-   * @brief Index buffer for the plane.
-   */
-  Buffer m_planeIndexBuffer;
-
-  /**
-   * @brief Constant buffer for the plane.
-   */
-  Buffer m_constPlane;
-
   // --- Texture and Sampler Resources ---
 
-  /**
-   * @brief Shader resource view for the cube texture.
-   */
-  ID3D11ShaderResourceView* g_pTextureRV = NULL;
-
-  /**
-   * @brief Sampler state for the cube texture.
-   */
-  ID3D11SamplerState* g_pSamplerLinear = NULL;
-
-  /**
-   * @brief Shader resource view for the plane texture.
-   */
-  ID3D11ShaderResourceView* g_pPlaneTextureRV = NULL;
-
-  /**
-   * @brief Sampler state for the plane texture.
-   */
-  ID3D11SamplerState* g_pPlaneSamplerLinear = NULL;
+  Texture g_koroTexture; ///< Texture for the Koro model.
+  Texture g_planeTexture; ///< Texture for the plane.
+  Texture g_shibaTexture; ///< Texture for the Shiba model.
 
   // --- Transformation Matrices ---
-
-  /**
-   * @brief World matrix for the cube.
-   */
-  XMMATRIX g_World;
-
-  /**
-   * @brief World matrix for the plane.
-   */
-  XMMATRIX g_PlaneWorld;
 
   /**
    * @brief View matrix.
@@ -266,11 +201,6 @@ private:
    */
   float ClearColor[4] = { 0.0f, 0.125f, 0.3f, 1.0f };
 
-  /**
-   * @brief Blend factor for blending operations.
-   */
-  float blendFactor[4] = { 0.f, 0.f, 0.f, 0.f };
-
   // --- Mesh Components ---
 
   /**
@@ -282,6 +212,11 @@ private:
    * @brief Mesh component for the plane.
    */
   MeshComponent planeMesh;
+
+  /**
+   * @brief Mesh component for the model.
+   */
+  MeshComponent koroMesh;
 
   // --- Constant Buffer Structures ---
 
@@ -295,34 +230,10 @@ private:
    */
   CBChangeOnResize cbChangesOnResize;
 
-  /**
-   * @brief Constant buffer for the plane (per-frame changes).
-   */
-  CBChangesEveryFrame cbPlane;
+  EngineUtilities::TSharedPointer<Actor> g_AKoro; ///< Shared pointer to the Koro actor in the scene.
+  EngineUtilities::TSharedPointer<Actor> g_APlane; ///< Shared pointer to the plane actor in the scene.
+  EngineUtilities::TSharedPointer<Actor> g_AShiba; ///< Shared pointer to the Shiba actor in the scene.
+  std::vector<EngineUtilities::TSharedPointer<Actor>> g_actors; ///< Vector of actors in the scene.
 
-  /**
-   * @brief Constant buffer for the cube (per-frame changes).
-   */
-  CBChangesEveryFrame cb;
-
-  /**
-   * @brief Constant buffer for shadow rendering (per-frame changes).
-   */
-  CBChangesEveryFrame cbShadow;
-
-public:
-  /**
-   * @brief Position of the main object or camera in world space.
-   */
-  XMFLOAT3 position;
-
-  /**
-   * @brief Rotation of the main object or camera in world space.
-   */
-  XMFLOAT3 rotation;
-
-  /**
-   * @brief Scale of the main object or camera in world space.
-   */
-  XMFLOAT3 scale;
+  XMFLOAT4 g_LightPos; ///< Posición de la luz(2.0f, 4.0f, -2.0f, 1.0f)
 };

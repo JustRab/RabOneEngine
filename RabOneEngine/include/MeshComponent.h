@@ -1,5 +1,6 @@
 ﻿#pragma once
 #include "Prerequisites.h"
+#include "ECS/Component.h"
 
 class DeviceContext;
 
@@ -12,17 +13,20 @@ class DeviceContext;
  * and rendering the mesh using a Direct3D device context.
  */
 class 
-MeshComponent /*: public Component*/ {
+MeshComponent : public Component {
 public:
   /**
    * @brief Constructs a new MeshComponent instance with zeroed vertex and index counts.
    */
-  MeshComponent() : m_numVertex(0), m_numIndex(0)/*, Component(ComponentType::MESH)*/ {}
+  MeshComponent() : m_numVertex(0), m_numIndex(0), Component(ComponentType::MESH) {}
 
   /**
    * @brief Virtual destructor.
    */
   virtual ~MeshComponent() = default;
+
+  void
+    init() override {};
 
   /**
    * @brief Updates the mesh component (no-op in this implementation).
@@ -30,14 +34,17 @@ public:
    * @param deviceContext Device context for graphics operations.
    */
   void 
-  update(float deltaTime) /*override*/ {}
+  update(float deltaTime) override {}
 
   /**
    * @brief Renders the mesh component (no-op in this implementation).
    * @param deviceContext Device context for graphics operations.
    */
   void 
-  render(DeviceContext& deviceContext) /*override*/ {}
+  render(DeviceContext& deviceContext) override {}
+
+  void
+    destroy() override {}
 
 public:
   /**

@@ -1,256 +1,268 @@
-#include "ModelLoader.h"
+﻿#include "ModelLoader.h"
 #include "OBJ_Loader.h"
 
-void ModelLoader::init()
-{
+MeshComponent
+ModelLoader::LoadOBJModel(const std::string& filePath) {
+	MeshComponent mesh;
+	objl::Loader loader;
+
+	if (!loader.LoadFile(filePath)) {
+		return mesh;
+	}
+
+	mesh.m_name = filePath;
+
+	const unsigned int numVertices = loader.LoadedVertices.size();
+	const unsigned int numIndices = loader.LoadedIndices.size();
+
+	// Reservar memoria exacta para evitar reallocs
+	mesh.m_vertex.resize(numVertices);
+	mesh.m_index = std::move(loader.LoadedIndices);  // Mover directamente
+
+	// Usar acceso por índice para evitar cópias extra
+	for (unsigned int i = 0; i < numVertices; ++i) {
+		const auto& v = loader.LoadedVertices[i];
+
+		mesh.m_vertex[i] = SimpleVertex{
+			{ v.Position.X, v.Position.Y, v.Position.Z },
+			{ v.TextureCoordinate.X, v.TextureCoordinate.Y }  // Remove UV flipping
+		};
+	}
+
+	mesh.m_numVertex = numVertices;
+	mesh.m_numIndex = numIndices;
+
+	return mesh;
 }
 
-void ModelLoader::update()
-{
-}
-
-void ModelLoader::render()
-{
-}
-
-void ModelLoader::destroy()
-{
-}
-
-LoadData 
-ModelLoader::LoadOBJModel(std::string objFileName) {
-  objl::Loader m_loader; ///< Loader for OBJ files.
-  // Temporal Load Data
-  LoadData LD;
-
-  m_loader.LoadFile(objFileName);
-
-  LD.name = objFileName;
-  WARNING("ModelLoader", "Load", L"[Load of file " + 
-           std::wstring(objFileName.begin(), objFileName.end()) + L" - " +
-           std::wstring(m_loader.LoadedMeshes[0].MeshName.begin(),
-           m_loader.LoadedMeshes[0].MeshName.end()) + L"]");
-
-  // Load and set data to custom structure (SimpleVertex)
-  LD.vertex.resize(m_loader.LoadedVertices.size());
-
-  for (int i = 0; i < LD.vertex.size(); i++)
-  {
-    // Load Positions
-    LD.vertex[i].Pos.x = m_loader.LoadedVertices[i].Position.X;
-    LD.vertex[i].Pos.y = m_loader.LoadedVertices[i].Position.Y;
-    LD.vertex[i].Pos.z = m_loader.LoadedVertices[i].Position.Z;
-
-    // Load Textures
-    LD.vertex[i].Tex.x = m_loader.LoadedVertices[i].TextureCoordinate.X;
-    LD.vertex[i].Tex.y = m_loader.LoadedVertices[i].TextureCoordinate.Y;
-  }
-
-  //Load and set data to custom structure (LoadData)
-  LD.index.resize(m_loader.LoadedIndices.size());
-  for (int i = 0; i < LD.index.size(); i++)
-  {
-    LD.index[i] = m_loader.LoadedIndices[i];
-  }
-
-  return LD;
-}
 
 bool
 ModelLoader::InitializeFBXManager() {
-  // Initialize the FBX SDK manager and other necessary components
-  lSdkManager = FbxManager::Create();
-  if (!lSdkManager) {
-    ERROR("ModelLoader", "FbxManager:: Create()", "Unable to create FBX Manager.");
-    return false;
-  }
-  else {
-    MESSAGE("ModelLoader", "ModelLoader", "Autodesk FBX SDK version " << lSdkManager->GetVersion);
-  }
+	// Initialize the FBX SDK manager
+	lSdkManager = FbxManager::Create();
+	if (!lSdkManager) {
+		ERROR("ModelLoader", "FbxManager::Create()", "Unable to create FBX Manager!");
+		return false;
+	}
+	else {
+		MESSAGE("ModelLoader", "ModelLoader", "Autodesk FBX SDK version " << lSdkManager->GetVersion())
+	}
 
-  //Create an IOSettings object
-  FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
-  lSdkManager->SetIOSettings(ios);
+	// Create an IOSettings object
+	FbxIOSettings* ios = FbxIOSettings::Create(lSdkManager, IOSROOT);
+	lSdkManager->SetIOSettings(ios);
 
-  // Create an FBXScene
-  lScene = FbxScene::Create(lSdkManager, "My Scene");
-  if (!lScene) {
-    ERROR("ModelLoader", "FbxScene::Create()", "Unable to create FBX Scene.");
-    return false;
-  }
-  else {
-    MESSAGE("ModelLoader", "ModelLoader", "FBX Scene created successfully.");
-  }
-  return true;
+	// Create an FBX Scene
+	lScene = FbxScene::Create(lSdkManager, "MyScene");
+	if (!lScene) {
+		ERROR("ModelLoader", "FbxScene::Create()", "Unable to create FBX Scene!");
+		return false;
+	}
+	else {
+		MESSAGE("ModelLoader", "ModelLoader", "FBX Scene created successfully.")
+	}
+	return true;
 }
 
 bool
 ModelLoader::LoadFBXModel(const std::string& filePath) {
-  // 01. Initialize the SDK from FBX Manager
-  if (InitializeFBXManager()) {
-    //02. Create an importer using the SDK Manager
-    FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
-    if (!lImporter) {
-      ERROR("ModelLoader", "FbxImporter::Create()", "Unable to create FBX Importer.");
-      return false;
-    }
-    else {
-      MESSAGE("ModelLoader", "ModelLoader", "FBX Importer created successfully.");
-    }
+	// Clear previous mesh data
+	meshes.clear();
+	textureFileNames.clear();
 
-    // 03. Use the first argument as the filename for the importer
-    if (!lImporter->Initialize(filePath.c_str(), -1, lSdkManager->GetIOSettings())) {
-      ERROR("ModelLoader", "FbxImporter::Initialize()",
-            "Unable to initialize FBX Importer! Error: " << lImporter->GetStatus().GetErrorString());
-      lImporter->Destroy();
-      return false;
-    }
-    else {
-      MESSAGE("ModelLoader", "ModelLoader", "FBX Importer initialized successfully.");
-    }
+	// 01. Initialize the SDK from FBX Manager
+	if (InitializeFBXManager()) {
+		// 02. Create an importer using the SDK manager
+		FbxImporter* lImporter = FbxImporter::Create(lSdkManager, "");
+		if (!lImporter) {
+			ERROR("ModelLoader", "FbxImporter::Create()", "Unable to create FBX Importer!");
+			return false;
+		}
+		else {
+			MESSAGE("ModelLoader", "ModelLoader", "FBX Importer created successfully.");
+		}
 
-    // 04. Import the scene from the file into the scene
-    if (!lImporter->Import(lScene)) {
-      ERROR("ModelLoader", "FbxImporter::Import()",
-            "Unable to import FBX Scene! Error: " << lImporter->GetStatus().GetErrorString());
-      lImporter->Destroy();
-      return false;
-    }
-    else {
-      MESSAGE("ModelLoader", "ModelLoader", "FBX Scene imported successfully.");
-    }
+		// 03. Use the first argument as the filename for the importer
+		if (!lImporter->Initialize(filePath.c_str(), -1, lSdkManager->GetIOSettings())) {
+			ERROR("ModelLoader", "FbxImporter::Initialize()",
+				"Unable to initialize FBX Importer! Error: " << lImporter->GetStatus().GetErrorString());
+			lImporter->Destroy();
+			return false;
+		}
+		else {
+			MESSAGE("ModelLoader", "ModelLoader", "FBX Importer initialized successfully.");
+		}
 
-    // 05. Destroy the importer
-    lImporter->Destroy();
-    MESSAGE("ModelLoader", "ModelLoader", "FBX Importer destroyed successfully.");
+		// 04. Import the scene from the file into the scene
+		if (!lImporter->Import(lScene)) {
+			ERROR("ModelLoader", "FbxImporter::Import()",
+				"Unable to import FBX Scene! Error: " << lImporter->GetStatus().GetErrorString());
+			lImporter->Destroy();
+			return false;
+		}
+		else {
+			MESSAGE("ModelLoader", "ModelLoader", "FBX Scene imported successfully.");
+			modelName = lImporter->GetFileName();
+		}
 
-    // 06. Process the model from the scene
-    FbxNode* lRootNode = lScene->GetRootNode();
+		// 05. Destroy the importer
+		lImporter->Destroy();
+		MESSAGE("ModelLoader", "ModelLoader", "FBX Importer destroyed successfully.");
 
-    if (lRootNode) {
-      MESSAGE("ModelLoader", "ModelLoader", 
-              "Processing FBX Node: " << lRootNode->GetName());
-      for (int i = 0; i < lRootNode->GetChildCount(); i++) {
-        ProcessFBXNode(lRootNode->GetChild(i));
-      }
-      return true;
-    }
-    else {
-      ERROR("ModelLoader", "FbxScene::GetRootNode()",
-            "Unable to get root node from FBX Scene!");
-      return false;
-    }
-  }
-  return false;
+		// 06. Process the model from the scene
+		FbxNode* lRootNode = lScene->GetRootNode();
+
+		if (lRootNode) {
+			MESSAGE("ModelLoader", "ModelLoader", "Processing model from the scene root node.");
+			for (int i = 0; i < lRootNode->GetChildCount(); i++) {
+				ProcessFBXNode(lRootNode->GetChild(i));
+			}
+			return !meshes.empty(); // Return true only if we loaded meshes
+		}
+		else {
+			ERROR("ModelLoader", "FbxScene::GetRootNode()",
+				"Unable to get root node from FBX Scene!");
+			return false;
+		}
+	}
+	return false;
 }
 
 void
 ModelLoader::ProcessFBXNode(FbxNode* node) {
-  // 01. Process all the node's meshes
-  if (node->GetNodeAttribute()){
-    if (node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh) {
-      ProcessFBXMesh(node);
-    }
-}
+	// 01. Process all the node's meshes
+	if (node->GetNodeAttribute()) {
+		if (node->GetNodeAttribute()->GetAttributeType() == FbxNodeAttribute::eMesh) {
+			ProcessFBXMesh(node);
+		}
+	}
 
-  // 02. Recursively process each child node
-  for (int i = 0; i < node->GetChildCount(); i++) {
-    ProcessFBXNode(node->GetChild(i));
-  }
+	// 02. Recursively process each child node
+	for (int i = 0; i < node->GetChildCount(); i++) {
+		ProcessFBXNode(node->GetChild(i));
+	}
 }
 
 void
 ModelLoader::ProcessFBXMesh(FbxNode* node) {
-  //01. Get mesh fromt he node. If there is no mesh, exit early.
-  FbxMesh* mesh = node->GetMesh();
-  if (!mesh) {
-    ERROR("ModelLoader", "FbxNode::GetMesh()", "No mesh found in the node.");
-    return;
-  }
+	// 01. Get the mesh from the node. If there is no mesh, exit early.
+	FbxMesh* mesh = node->GetMesh();
+	if (!mesh) return;
 
-  std::vector<SimpleVertex> vertices;
-  std::vector<unsigned int> indices;
+	// Triangulate the mesh to ensure we have triangles
+	FbxGeometryConverter converter(lSdkManager);
+	mesh = (FbxMesh*)converter.Triangulate(mesh, true);
+	if (!mesh) {
+		ERROR("ModelLoader", "ProcessFBXMesh", "Failed to triangulate mesh");
+		return;
+	}
 
-  // 02. Process vertices; extract positions from control points.
-  for (int i = 0; i < mesh->GetControlPointsCount(); i++) {
-    SimpleVertex vertex;
-    FbxVector4* controlPoint = mesh->GetControlPoints();
-    vertex.Pos = XMFLOAT3((float)controlPoint[i][0],
-      (float)controlPoint[i][1],
-      (float)controlPoint[i][2]);
+	std::vector<SimpleVertex> vertices;
+	std::vector<unsigned int> indices;
 
-    vertices.push_back(vertex);
-  }
+	// 02. Get UV element
+	FbxGeometryElementUV* uvElement = nullptr;
+	if (mesh->GetElementUVCount() > 0) {
+		uvElement = mesh->GetElementUV(0);
+	}
 
-  //03. Process UV coordinates if available.
-  if (mesh->GetElementUVCount() > 0) {
-    FbxGeometryElementUV* uvElement = mesh->GetElementUV(0);
-    FbxGeometryElement::EMappingMode mappingMode = uvElement->GetMappingMode();
-    FbxGeometryElement::EReferenceMode referenceMode = uvElement->GetReferenceMode();
-    int polyIndexCounter = 0; // Counter for polugon vertex indexing when mapping by polygon vertex.
+	// 03. Process each polygon (should be triangles after triangulation)
+	int vertexId = 0;
+	for (int polyIndex = 0; polyIndex < mesh->GetPolygonCount(); polyIndex++) {
+		int polySize = mesh->GetPolygonSize(polyIndex);
 
-    // 03.1 Iterate through each polygon in the mesh.
-    for (int polyIndex = 0; polyIndex < mesh->GetPolygonCount(); polyIndex++) {
-      int polySize = mesh->GetPolygonSize(polyIndex);
+		// Should be 3 after triangulation
+		if (polySize != 3) {
+			ERROR("ModelLoader", "ProcessFBXMesh", "Non-triangle polygon found after triangulation");
+			continue;
+		}
 
-      //03.1.1 Process each vertex in the polygon.
-      for (int vertIndex = 0; vertIndex < polySize; vertIndex++) {
-        int controlPointIndex = mesh->GetPolygonVertex(polyIndex, vertIndex);
-        int uvIndex = -1;
+		// Process each vertex in the triangle
+		for (int vertIndex = 0; vertIndex < polySize; vertIndex++) {
+			int controlPointIndex = mesh->GetPolygonVertex(polyIndex, vertIndex);
 
-        // 03.1.1.1 Handle UV mapping mode: by control point.
-        if (mappingMode == FbxGeometryElement::eByControlPoint) {
-          if (referenceMode == FbxGeometryElement::eDirect) {
-            uvIndex = controlPointIndex;
-          }
-          else if (referenceMode == FbxGeometryElement::eIndexToDirect) {
-            uvIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
-          }
-        }
-        // 03.1.1.2 Handle UV mapping mode: by polygon vertex.
-        else if (mappingMode == FbxGeometryElement::eByPolygonVertex) {
-          if (referenceMode == FbxGeometryElement::eDirect || referenceMode == FbxGeometryElement::eIndexToDirect) {
-            uvIndex = uvElement->GetIndexArray().GetAt(polyIndexCounter);
-            polyIndexCounter++;
-          }
-        }
+			SimpleVertex vertex;
 
-        // 03.1.1.3 If a valid UV index is found, set the texture coordinate.
-        if (uvIndex != -1) {
-          FbxVector2 uv = uvElement->GetDirectArray().GetAt(uvIndex);
-          vertices[controlPointIndex].Tex = XMFLOAT2((float)uv[0], -(float)uv[1]);
-        }
-      }
-    }
-  }
+			// Get position from control points
+			FbxVector4 position = mesh->GetControlPointAt(controlPointIndex);
+			vertex.Pos = XMFLOAT3(
+				static_cast<float>(position[0]),
+				static_cast<float>(position[1]),
+				static_cast<float>(position[2])
+			);
 
-  // 04. Process indices: extract polygon vertex indices.
-  for (int i = 0; i < mesh->GetPolygonCount(); i++) {
-    for (int j = 0; j < mesh->GetPolygonSize(i); j++) {
-      indices.push_back(mesh->GetPolygonVertex(i, j));
-    }
-  }
+			// Get UV coordinates - Fixed UV mapping
+			if (uvElement) {
+				FbxVector2 uv(0, 0);
 
-  //05. Create a MeshComponent and populate it with the processed data.
-  MeshComponent meshData;
-  meshData.m_name = node->GetName();
-  meshData.m_vertex = vertices;
-  meshData.m_index = indices;
-  meshData.m_numIndex = indices.size();
-  meshData.m_numVertex = vertices.size();
+				// Use polygon vertex mapping for proper per-vertex UV coordinates
+				if (uvElement->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
+					if (uvElement->GetReferenceMode() == FbxGeometryElement::eDirect) {
+						uv = uvElement->GetDirectArray().GetAt(vertexId);
+					}
+					else if (uvElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+						int uvIndex = uvElement->GetIndexArray().GetAt(vertexId);
+						uv = uvElement->GetDirectArray().GetAt(uvIndex);
+					}
+				}
+				else if (uvElement->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
+					if (uvElement->GetReferenceMode() == FbxGeometryElement::eDirect) {
+						uv = uvElement->GetDirectArray().GetAt(controlPointIndex);
+					}
+					else if (uvElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+						int uvIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
+						uv = uvElement->GetDirectArray().GetAt(uvIndex);
+					}
+				}
+
+				// Clamp UV coordinates to valid range and fix V coordinate if needed
+				float u = static_cast<float>(uv[0]);
+				float v = static_cast<float>(uv[1]);
+
+				// Ensure UV coordinates are in valid range
+				u = fmod(u, 1.0f);
+				v = fmod(v, 1.0f);
+				if (u < 0.0f) u += 1.0f;
+				if (v < 0.0f) v += 1.0f;
+
+				vertex.Tex = XMFLOAT2(u, v);
+			}
+			else {
+				vertex.Tex = XMFLOAT2(0.0f, 0.0f);
+			}
+
+			vertices.push_back(vertex);
+			indices.push_back(vertexId);
+			vertexId++;
+		}
+	}
+
+	// 04. Create a MeshComponent and populate it with the processed data.
+	if (!vertices.empty() && !indices.empty()) {
+		MeshComponent meshData;
+		meshData.m_name = node->GetName();
+		meshData.m_vertex = vertices;
+		meshData.m_index = indices;
+		meshData.m_numVertex = vertices.size();
+		meshData.m_numIndex = indices.size();
+
+		// 05. Add the processed mesh data to the collection.
+		meshes.push_back(meshData);
+	}
 }
 
-void ModelLoader::ProcessFBXMaterials(FbxSurfaceMaterial* material) {
-  if (material) {
-    FbxProperty prop = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
-    if (prop.IsValid()) {
-      int textureCount = prop.GetSrcObjectCount<FbxTexture>();
-      for (int i = 0; i < textureCount; i++) {
-        FbxTexture* texture = FbxCast<FbxTexture>(prop.GetSrcObject<FbxTexture>(i));
-        if (texture) {
-          textureFileNames.push_back(texture->GetName());
-        }
-      }
-    }
-  }
+void
+ModelLoader::ProcessFBXMaterials(FbxSurfaceMaterial* material) {
+	if (material) {
+		FbxProperty prop = material->FindProperty(FbxSurfaceMaterial::sDiffuse);
+		if (prop.IsValid()) {
+			int textureCount = prop.GetSrcObjectCount<FbxTexture>();
+			for (int i = 0; i < textureCount; ++i) {
+				FbxTexture* texture = FbxCast<FbxTexture>(prop.GetSrcObject<FbxTexture>(i));
+				if (texture) {
+					textureFileNames.push_back(texture->GetName());
+				}
+			}
+		}
+	}
 }

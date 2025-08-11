@@ -39,6 +39,12 @@
     <Filter Include="include\Engine Utilities\Misc">
       <UniqueIdentifier>{0f80a234-ea24-4be0-999b-0931c100cf75}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\ECS">
+      <UniqueIdentifier>{75722369-41b0-4795-8209-8162bd9a8ce8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\ECS">
+      <UniqueIdentifier>{27d1d4ae-838a-405c-b201-f18cead0d446}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\Prerequisites.h">
@@ -170,6 +176,27 @@
     <ClInclude Include="include\Engine Utilities\Structures\TSet.h">
       <Filter>include\Engine Utilities\Structures</Filter>
     </ClInclude>
+    <ClInclude Include="include\ECS\Component.h">
+      <Filter>include\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Entity.h">
+      <Filter>include\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Actor.h">
+      <Filter>include\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="include\ECS\Transform.h">
+      <Filter>include\ECS</Filter>
+    </ClInclude>
+    <ClInclude Include="include\SamplerState.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\stb_image.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="include\Rasterizer.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Window.cpp">
@@ -244,6 +271,18 @@
     <ClCompile Include="src\UserInterface.cpp">
       <Filter>source</Filter>
     </ClCompile>
+    <ClCompile Include="src\ECS\Actor.cpp">
+      <Filter>source\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\ECS\Transform.cpp">
+      <Filter>source\ECS</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Rasterizer.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SamplerState.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="RabOneEngine.fx">
@@ -257,7 +296,5 @@
     <ResourceCompile Include="RabOneEngine.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
-  </ItemGroup>
-  <ItemGroup>
   </ItemGroup>
 </Project>
