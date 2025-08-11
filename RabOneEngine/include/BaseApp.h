@@ -173,6 +173,7 @@ public:
 
   Texture g_koroTexture; ///< Texture for the Koro model.
   Texture g_planeTexture; ///< Texture for the plane.
+  Texture g_shibaTexture; ///< Texture for the Shiba model.
 
   // --- Transformation Matrices ---
 
@@ -231,6 +232,7 @@ public:
 
   EngineUtilities::TSharedPointer<Actor> g_AKoro; ///< Shared pointer to the Koro actor in the scene.
   EngineUtilities::TSharedPointer<Actor> g_APlane; ///< Shared pointer to the plane actor in the scene.
+  EngineUtilities::TSharedPointer<Actor> g_AShiba; ///< Shared pointer to the Shiba actor in the scene.
   std::vector<EngineUtilities::TSharedPointer<Actor>> g_actors; ///< Vector of actors in the scene.
 
   XMFLOAT4 g_LightPos; ///< Posición de la luz(2.0f, 4.0f, -2.0f, 1.0f)

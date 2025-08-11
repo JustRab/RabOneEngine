@@ -88,27 +88,34 @@ Actor::render(DeviceContext& deviceContext) {
 		renderShadow(deviceContext);
 	}
 
-	// 2) Estados de raster, blend y sampler para el modelo
-	m_blendstate.render(deviceContext);
+	// 2) Configure blend state for proper alpha handling
+	float blendFactor[4] = { 0.0f, 0.0f, 0.0f, 0.0f };
+	m_blendstate.render(deviceContext, blendFactor, 0xffffffff);
 	m_rasterizer.render(deviceContext);
 	m_sampler.render(deviceContext, 0, 1);
 
 	deviceContext.IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+	
 	// Update buffer and render all components
 	for (unsigned int i = 0; i < m_meshes.size(); i++) {
 		m_vertexBuffers[i].render(deviceContext, 0, 1);
 		m_indexBuffers[i].render(deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-		// Bind del CB �normal� (world + color)
+		
+		// Bind del CB normal (world + color)
 		m_modelBuffer.render(deviceContext, 2, 1, true);
 
-		// Render mesh texture
-		if (m_textures.size() > 0) {
-			if (i < m_textures.size()) {
-				m_textures[i].render(deviceContext, 0, 1);
-			}
+		// Render mesh texture - improved texture binding
+		if (!m_textures.empty()) {
+			// Use modulo to ensure we don't go out of bounds
+			int textureIndex = i % m_textures.size();
+			m_textures[textureIndex].render(deviceContext, 0, 1);
 		}
 
+		// Draw the mesh
 		deviceContext.DrawIndexed(m_meshes[i].m_numIndex, 0, 0);
+		
+		MESSAGE("Actor", "render", 
+			"Rendered mesh " << i << " with " << m_meshes[i].m_numIndex << " indices");
 	}
 }
 

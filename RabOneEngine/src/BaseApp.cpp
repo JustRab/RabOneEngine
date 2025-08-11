@@ -121,6 +121,63 @@ BaseApp::init() {
     return E_FAIL;
   }
 
+  // Set Shiba FBX Model
+  g_AShiba = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
+
+  if (!g_AShiba.isNull()) {
+    // Load FBX model using ModelLoader
+    if (m_loader.LoadFBXModel("models/shiba.FBX")) {
+      // Get the loaded meshes from the ModelLoader
+      std::vector<MeshComponent> shibaMeshes = m_loader.meshes;
+      
+      if (!shibaMeshes.empty()) {
+        MESSAGE("Main", "InitDevice", 
+          "Loaded Shiba FBX with " << shibaMeshes.size() << " meshes");
+        
+        // Load the texture - corrected filename to match your specification
+        hr = g_shibaTexture.init(g_device, "textures/shiba", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Shiba texture. HRESULT: " + std::to_string(hr)).c_str());
+          
+          // Try loading a default texture as fallback
+          hr = g_shibaTexture.init(g_device, "Textures/Default", PNG);
+          if (FAILED(hr)) {
+            ERROR("Main", "InitDevice", "Failed to load fallback texture for Shiba");
+            return hr;
+          }
+        }
+
+        std::vector<Texture> shibaTextures;
+        shibaTextures.push_back(g_shibaTexture);
+        
+        g_AShiba->SetMesh(g_device, shibaMeshes);
+        g_AShiba->setTextures(shibaTextures);
+
+        // Position the Shiba model next to Koro with better positioning
+        g_AShiba->getComponent<Transform>()->setTransform(
+          EngineUtilities::Vector3(1.0f, 0.0f, 0.0f), // Position offset from Koro
+          EngineUtilities::Vector3(5.0f, 3.4f, 0.0f),  // No rotation
+          EngineUtilities::Vector3(1.0f, 1.0f, 1.0f) // Smaller scale like Koro
+        );
+        g_AShiba->setCastShadow(false);
+        g_actors.push_back(g_AShiba);
+      }
+      else {
+        ERROR("Main", "InitDevice", "No meshes found in FBX model.");
+        return E_FAIL;
+      }
+    }
+    else {
+      ERROR("Main", "InitDevice", "Failed to load FBX model: models/shiba.FBX");
+      return E_FAIL;
+    }
+  }
+  else {
+    ERROR("Main", "InitDevice", "Failed to create Shiba actor.");
+    return E_FAIL;
+  }
+
   // Set plane actor
   g_APlane = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
 

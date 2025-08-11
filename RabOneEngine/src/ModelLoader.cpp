@@ -26,7 +26,6 @@ ModelLoader::LoadOBJModel(const std::string& filePath) {
 		mesh.m_vertex[i] = SimpleVertex{
 			{ v.Position.X, v.Position.Y, v.Position.Z },
 			{ v.TextureCoordinate.X, v.TextureCoordinate.Y }  // Remove UV flipping
-			// Optionally: , 0 // default texture index
 		};
 	}
 
@@ -67,6 +66,10 @@ ModelLoader::InitializeFBXManager() {
 
 bool
 ModelLoader::LoadFBXModel(const std::string& filePath) {
+	// Clear previous mesh data
+	meshes.clear();
+	textureFileNames.clear();
+
 	// 01. Initialize the SDK from FBX Manager
 	if (InitializeFBXManager()) {
 		// 02. Create an importer using the SDK manager
@@ -114,7 +117,7 @@ ModelLoader::LoadFBXModel(const std::string& filePath) {
 			for (int i = 0; i < lRootNode->GetChildCount(); i++) {
 				ProcessFBXNode(lRootNode->GetChild(i));
 			}
-			return true;
+			return !meshes.empty(); // Return true only if we loaded meshes
 		}
 		else {
 			ERROR("ModelLoader", "FbxScene::GetRootNode()",
@@ -146,78 +149,106 @@ ModelLoader::ProcessFBXMesh(FbxNode* node) {
 	FbxMesh* mesh = node->GetMesh();
 	if (!mesh) return;
 
+	// Triangulate the mesh to ensure we have triangles
+	FbxGeometryConverter converter(lSdkManager);
+	mesh = (FbxMesh*)converter.Triangulate(mesh, true);
+	if (!mesh) {
+		ERROR("ModelLoader", "ProcessFBXMesh", "Failed to triangulate mesh");
+		return;
+	}
+
 	std::vector<SimpleVertex> vertices;
 	std::vector<unsigned int> indices;
 
-	// 02. Process vertices: extract positions from control points.
-	for (int i = 0; i < mesh->GetControlPointsCount(); i++) {
-		SimpleVertex vertex;
-		FbxVector4* controlPoint = mesh->GetControlPoints();
-		vertex.Pos = XMFLOAT3((float)controlPoint[i][0],
-			(float)controlPoint[i][1],
-			(float)controlPoint[i][2]);
-		vertices.push_back(vertex);
-	}
-
-	// 03. Process UV coordinates if available.
+	// 02. Get UV element
+	FbxGeometryElementUV* uvElement = nullptr;
 	if (mesh->GetElementUVCount() > 0) {
-		FbxGeometryElementUV* uvElement = mesh->GetElementUV(0);
-		FbxGeometryElement::EMappingMode mappingMode = uvElement->GetMappingMode();
-		FbxGeometryElement::EReferenceMode referenceMode = uvElement->GetReferenceMode();
-		int polyIndexCounter = 0; // Counter for polygon vertex indexing when mapping by polygon vertex.
+		uvElement = mesh->GetElementUV(0);
+	}
 
-		// 03.1 Iterate through each polygon in the mesh.
-		for (int polyIndex = 0; polyIndex < mesh->GetPolygonCount(); polyIndex++) {
-			int polySize = mesh->GetPolygonSize(polyIndex);
+	// 03. Process each polygon (should be triangles after triangulation)
+	int vertexId = 0;
+	for (int polyIndex = 0; polyIndex < mesh->GetPolygonCount(); polyIndex++) {
+		int polySize = mesh->GetPolygonSize(polyIndex);
 
-			// 03.1.1 Process each vertex in the polygon.
-			for (int vertIndex = 0; vertIndex < polySize; vertIndex++) {
-				int controlPointIndex = mesh->GetPolygonVertex(polyIndex, vertIndex);
-				int uvIndex = -1;
+		// Should be 3 after triangulation
+		if (polySize != 3) {
+			ERROR("ModelLoader", "ProcessFBXMesh", "Non-triangle polygon found after triangulation");
+			continue;
+		}
 
-				// 03.1.1.1 Handle UV mapping mode: by control point.
-				if (mappingMode == FbxGeometryElement::eByControlPoint) {
-					if (referenceMode == FbxGeometryElement::eDirect) {
-						uvIndex = controlPointIndex;
+		// Process each vertex in the triangle
+		for (int vertIndex = 0; vertIndex < polySize; vertIndex++) {
+			int controlPointIndex = mesh->GetPolygonVertex(polyIndex, vertIndex);
+
+			SimpleVertex vertex;
+
+			// Get position from control points
+			FbxVector4 position = mesh->GetControlPointAt(controlPointIndex);
+			vertex.Pos = XMFLOAT3(
+				static_cast<float>(position[0]),
+				static_cast<float>(position[1]),
+				static_cast<float>(position[2])
+			);
+
+			// Get UV coordinates - Fixed UV mapping
+			if (uvElement) {
+				FbxVector2 uv(0, 0);
+
+				// Use polygon vertex mapping for proper per-vertex UV coordinates
+				if (uvElement->GetMappingMode() == FbxGeometryElement::eByPolygonVertex) {
+					if (uvElement->GetReferenceMode() == FbxGeometryElement::eDirect) {
+						uv = uvElement->GetDirectArray().GetAt(vertexId);
 					}
-					else if (referenceMode == FbxGeometryElement::eIndexToDirect) {
-						uvIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
+					else if (uvElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+						int uvIndex = uvElement->GetIndexArray().GetAt(vertexId);
+						uv = uvElement->GetDirectArray().GetAt(uvIndex);
 					}
 				}
-				// 03.1.1.2 Handle UV mapping mode: by polygon vertex.
-				else if (mappingMode == FbxGeometryElement::eByPolygonVertex) {
-					if (referenceMode == FbxGeometryElement::eDirect || referenceMode == FbxGeometryElement::eIndexToDirect) {
-						uvIndex = uvElement->GetIndexArray().GetAt(polyIndexCounter);
-						polyIndexCounter++;
+				else if (uvElement->GetMappingMode() == FbxGeometryElement::eByControlPoint) {
+					if (uvElement->GetReferenceMode() == FbxGeometryElement::eDirect) {
+						uv = uvElement->GetDirectArray().GetAt(controlPointIndex);
+					}
+					else if (uvElement->GetReferenceMode() == FbxGeometryElement::eIndexToDirect) {
+						int uvIndex = uvElement->GetIndexArray().GetAt(controlPointIndex);
+						uv = uvElement->GetDirectArray().GetAt(uvIndex);
 					}
 				}
 
-				// 03.1.1.3 If a valid UV index is found, set the texture coordinate.
-				if (uvIndex != -1) {
-					FbxVector2 uv = uvElement->GetDirectArray().GetAt(uvIndex);
-					vertices[controlPointIndex].Tex = XMFLOAT2((float)uv[0], (float)uv[1]); // Remove UV flipping
-				}
+				// Clamp UV coordinates to valid range and fix V coordinate if needed
+				float u = static_cast<float>(uv[0]);
+				float v = static_cast<float>(uv[1]);
+
+				// Ensure UV coordinates are in valid range
+				u = fmod(u, 1.0f);
+				v = fmod(v, 1.0f);
+				if (u < 0.0f) u += 1.0f;
+				if (v < 0.0f) v += 1.0f;
+
+				vertex.Tex = XMFLOAT2(u, v);
 			}
+			else {
+				vertex.Tex = XMFLOAT2(0.0f, 0.0f);
+			}
+
+			vertices.push_back(vertex);
+			indices.push_back(vertexId);
+			vertexId++;
 		}
 	}
 
-	// 04. Process indices: extract polygon vertex indices.
-	for (int i = 0; i < mesh->GetPolygonCount(); i++) {
-		for (int j = 0; j < mesh->GetPolygonSize(i); j++) {
-			indices.push_back(mesh->GetPolygonVertex(i, j));
-		}
+	// 04. Create a MeshComponent and populate it with the processed data.
+	if (!vertices.empty() && !indices.empty()) {
+		MeshComponent meshData;
+		meshData.m_name = node->GetName();
+		meshData.m_vertex = vertices;
+		meshData.m_index = indices;
+		meshData.m_numVertex = vertices.size();
+		meshData.m_numIndex = indices.size();
+
+		// 05. Add the processed mesh data to the collection.
+		meshes.push_back(meshData);
 	}
-
-	// 05. Create a MeshComponent and populate it with the processed data.
-	MeshComponent meshData;
-	meshData.m_name = node->GetName();
-	meshData.m_vertex = vertices;
-	meshData.m_index = indices;
-	meshData.m_numVertex = vertices.size();
-	meshData.m_numIndex = indices.size();
-
-	// 06. Add the processed mesh data to the collection.
-	meshes.push_back(meshData);
 }
 
 void
