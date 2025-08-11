@@ -11,12 +11,18 @@ SamplerState::init(Device& device) {
 
   D3D11_SAMPLER_DESC sampDesc = {};
   sampDesc.Filter = D3D11_FILTER_MIN_MAG_MIP_LINEAR;
-  sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP;
-  sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP;
+  sampDesc.AddressU = D3D11_TEXTURE_ADDRESS_WRAP; // Use WRAP for proper texture tiling
+  sampDesc.AddressV = D3D11_TEXTURE_ADDRESS_WRAP; // Use WRAP for proper texture tiling
   sampDesc.AddressW = D3D11_TEXTURE_ADDRESS_WRAP;
   sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
+  sampDesc.BorderColor[0] = 0.0f;
+  sampDesc.BorderColor[1] = 0.0f;
+  sampDesc.BorderColor[2] = 0.0f;
+  sampDesc.BorderColor[3] = 0.0f;
   sampDesc.MinLOD = 0;
   sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
+  sampDesc.MipLODBias = 0.0f;
+  sampDesc.MaxAnisotropy = 1;
 
   HRESULT hr = device.CreateSamplerState(&sampDesc, &m_sampler);
   if (FAILED(hr)) {
@@ -29,7 +35,7 @@ SamplerState::init(Device& device) {
 
 void
 SamplerState::update() {
-  // No hay logica de actualizaci�n para un sampler en este caso.
+  // No hay lógica de actualización para un sampler en este caso.
 }
 
 void

@@ -4,10 +4,17 @@
 #include "DeviceContext.h"
 #include "BaseApp.h"
 
-void
+bool
 UserInterface::init(void* window,
   ID3D11Device* device,
   ID3D11DeviceContext* deviceContext) {
+  
+  // Validate input parameters
+  if (!window || !device || !deviceContext) {
+    ERROR("UserInterface", "init", "Invalid parameters passed to UserInterface::init");
+    return false;
+  }
+
   IMGUI_CHECKVERSION(); // Check ImGUI version
   ImGui::CreateContext(); // Initialize the context
   ImGuiIO& io = ImGui::GetIO();
@@ -17,7 +24,7 @@ UserInterface::init(void* window,
   // Setup GUI Style
   setupGUIStyle();
 
-  // / When viewports are enabled we tweak WindowRounding/WindoBg so platform windows can look identical to regular ones.
+  // When viewports are enabled we tweak WindowRounding/WindowBg so platform windows can look identical to regular ones.
   ImGuiStyle& style = ImGui::GetStyle();
   if (io.ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
   {
@@ -26,9 +33,23 @@ UserInterface::init(void* window,
   }
 
   // Setup Platform and Renderer bindings
-  ImGui_ImplWin32_Init(window);
-  ImGui_ImplDX11_Init(device, deviceContext);
+  bool win32_init = ImGui_ImplWin32_Init(window);
+  if (!win32_init) {
+    ERROR("UserInterface", "init", "Failed to initialize ImGui Win32 backend");
+    ImGui::DestroyContext();
+    return false;
+  }
 
+  bool dx11_init = ImGui_ImplDX11_Init(device, deviceContext);
+  if (!dx11_init) {
+    ERROR("UserInterface", "init", "Failed to initialize ImGui DirectX11 backend");
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    return false;
+  }
+  
+  m_initialized = true;
+  return true;
 }
 
 void
@@ -55,10 +76,13 @@ UserInterface::render() {
 
 void
 UserInterface::destroy() {
-  // Cleanup
-  ImGui_ImplDX11_Shutdown();
-  ImGui_ImplWin32_Shutdown();
-  ImGui::DestroyContext();
+  if (m_initialized) {
+    // Cleanup
+    ImGui_ImplDX11_Shutdown();
+    ImGui_ImplWin32_Shutdown();
+    ImGui::DestroyContext();
+    m_initialized = false;
+  }
 }
 
 void

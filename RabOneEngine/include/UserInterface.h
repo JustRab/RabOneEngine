@@ -23,8 +23,9 @@ public:
    * @param window Pointer to the application window.
    * @param device Pointer to the Direct3D device.
    * @param deviceContext Pointer to the Direct3D device context.
+   * @return bool True if initialization was successful, false otherwise.
    */
-  void
+  bool
   init(void* window,
        ID3D11Device* device,
        ID3D11DeviceContext* deviceContext);
@@ -75,6 +76,12 @@ public:
       float resetValues = 0.0f,
       float columnWidth = 100.0f);
 
-private:
+  /**
+   * @brief Check if the UserInterface has been successfully initialized.
+   * @return bool True if initialized, false otherwise.
+   */
+  bool isInitialized() const { return m_initialized; }
 
+private:
+  bool m_initialized = false; ///< Flag to track if UI has been initialized successfully
 };

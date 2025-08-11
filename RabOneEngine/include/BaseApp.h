@@ -17,6 +17,7 @@
 #include "UserInterface.h"
 #include "ModelLoader.h"
 #include "ECS/Actor.h"
+#include "SamplerState.h"
 
 /**
  * @class BaseApp
@@ -151,6 +152,11 @@ public:
    */
   ModelLoader m_loader;
 
+  /**
+   * @brief Sampler state for texture sampling.
+   */
+  SamplerState g_samplerState;
+
   // --- Camera Buffers ---
 
   /**
@@ -222,8 +228,6 @@ public:
    * @brief Constant buffer for data that changes on window resize.
    */
   CBChangeOnResize cbChangesOnResize;
-
-  UserInterface m_userInterface;
 
   EngineUtilities::TSharedPointer<Actor> g_AKoro; ///< Shared pointer to the Koro actor in the scene.
   EngineUtilities::TSharedPointer<Actor> g_APlane; ///< Shared pointer to the plane actor in the scene.

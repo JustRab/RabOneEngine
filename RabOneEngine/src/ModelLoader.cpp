@@ -19,13 +19,14 @@ ModelLoader::LoadOBJModel(const std::string& filePath) {
 	mesh.m_vertex.resize(numVertices);
 	mesh.m_index = std::move(loader.LoadedIndices);  // Mover directamente
 
-	// Usar acceso por �ndice para evitar c�pias extra
+	// Usar acceso por índice para evitar cópias extra
 	for (unsigned int i = 0; i < numVertices; ++i) {
 		const auto& v = loader.LoadedVertices[i];
 
 		mesh.m_vertex[i] = SimpleVertex{
 			{ v.Position.X, v.Position.Y, v.Position.Z },
-			{ v.TextureCoordinate.X, 1.0f - v.TextureCoordinate.Y }
+			{ v.TextureCoordinate.X, v.TextureCoordinate.Y }  // Remove UV flipping
+			// Optionally: , 0 // default texture index
 		};
 	}
 
@@ -194,7 +195,7 @@ ModelLoader::ProcessFBXMesh(FbxNode* node) {
 				// 03.1.1.3 If a valid UV index is found, set the texture coordinate.
 				if (uvIndex != -1) {
 					FbxVector2 uv = uvElement->GetDirectArray().GetAt(uvIndex);
-					vertices[controlPointIndex].Tex = XMFLOAT2((float)uv[0], -(float)uv[1]);
+					vertices[controlPointIndex].Tex = XMFLOAT2((float)uv[0], (float)uv[1]); // Remove UV flipping
 				}
 			}
 		}

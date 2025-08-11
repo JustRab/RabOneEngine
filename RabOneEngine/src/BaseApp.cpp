@@ -51,6 +51,13 @@ BaseApp::init() {
     return hr;
   }
 
+  // Initialize sampler state for texture sampling
+  hr = g_samplerState.init(g_device);
+  if (FAILED(hr)) {
+    ERROR("Main", "InitDevice", ("Failed to initialize SamplerState. HRESULT: " + std::to_string(hr)).c_str());
+    return hr;
+  }
+
   // Definir el layout de entrada
   std::vector<D3D11_INPUT_ELEMENT_DESC> Layout;
 
@@ -106,7 +113,7 @@ BaseApp::init() {
 
     g_actors.push_back(g_AKoro);
     g_AKoro->getComponent<Transform>()->setTransform(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f),
-      EngineUtilities::Vector3(0.0f, 0.0f, 0.0f), EngineUtilities::Vector3(0.1f, 0.1f, 0.1f));
+      EngineUtilities::Vector3(0.0f, 3.4f, 0.0f), EngineUtilities::Vector3(0.025f, 0.025f, 0.025f));
     g_AKoro->setCastShadow(false);
   }
   else {
@@ -195,6 +202,13 @@ BaseApp::init() {
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
 
+  // Initialize the user interface after graphics resources are ready
+  if (!g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext)) {
+    ERROR("Main", "InitDevice", "Failed to initialize UserInterface.");
+    return E_FAIL;
+  }
+
+  return hr;
 }
 
 // Actualiza el estado de la aplicación. Debe ser sobreescrito por clases derivadas.
@@ -248,6 +262,9 @@ BaseApp::render() {
   // Configurar los buffers y shaders para el pipeline
   g_shaderProgram.render(g_deviceContext);
 
+  // Set sampler state for texture sampling
+  g_samplerState.render(g_deviceContext, 0, 1);
+
   // Asignar buffers constantes Camera
   m_neverChanges.render(g_deviceContext, 0, 1);
   m_changeOnResize.render(g_deviceContext, 1, 1);
@@ -269,7 +286,8 @@ void
 BaseApp::destroy() {
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
   m_neverChanges.destroy();
-  m_changeOnResize.destroy();;
+  m_changeOnResize.destroy();
+  g_samplerState.destroy();
   g_shaderProgram.destroy();
   g_depthStencil.destroy();
   g_depthStencilView.destroy();
