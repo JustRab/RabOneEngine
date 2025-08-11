@@ -1,50 +1,121 @@
-#pragma once
+﻿#pragma once
 #include "Prerequisites.h"
-#include "ECS/Entity.h"
+#include "Entity.h"
 #include "Buffer.h"
 #include "Texture.h"
+#include "Transform.h"
+#include "SamplerState.h"
+#include "Rasterizer.h"
+#include "BlendState.h"
+#include "ShaderProgram.h"
+#include "DepthStencilState.h"
 
 class device;
 class MeshComponent;
 
-class Actor : public Entity {
+class
+  Actor : public Entity {
 public:
-	Actor() = default;
+  /**
+   * @brief Constructor por defecto.
+   */
+  Actor() = default;
 
-	Actor(Device& device);
+  /**
+   * @brief Constructor que inicializa el actor con un dispositivo.
+   * @param device El dispositivo con el cual se inicializa el actor.
+   */
+  Actor(Device& device);
 
-	virtual
-	~Actor() = default;
+  /**
+   * @brief Destructor virtual.
+   */
+  virtual
+    ~Actor() = default;
 
   void
-  update(float deltaTime, DeviceContext& deviceContext) override;
+    init() override {}
 
+  /**
+   * @brief Actualiza el actor.
+   * @param deltaTime El tiempo transcurrido desde la �ltima actualizaci�n.
+   * @param deviceContext Contexto del dispositivo para operaciones gr�ficas.
+   */
   void
-  render(DeviceContext& deviceContext) override;
+    update(float deltaTime, DeviceContext& deviceContext) override;
 
+  /**
+   * @brief Renderiza el actor.
+   * @param deviceContext Contexto del dispositivo para operaciones gr�ficas.
+   */
   void
-  destroy();
+    render(DeviceContext& deviceContext) override;
 
+  /**
+   * @brief Destruye el actor y libera los recursos asociados.
+   */
   void
-  SetMesh(Device& device, std::vector<MeshComponent> meshes);
+    destroy();
+
+  /**
+   * @brief Establece las mallas del actor.
+   * @param device El dispositivo con el cual se inicializan las mallas.
+   * @param meshes Vector de componentes de malla que se van a establecer.
+   */
+  void
+    SetMesh(Device& device, std::vector<MeshComponent> meshes);
 
   std::string
     getName() {
-    return m_name; 
+    return m_name;
   }
 
   void
-  setName(const std::string& name) {
+    setName(const std::string& name) {
     m_name = name;
   }
 
+  /**
+   * @brief Establece las texturas del actor.
+   * @param textures Vector de texturas que se van a establecer.
+   */
+  void
+    setTextures(std::vector<Texture> textures) {
+    m_textures = textures;
+  }
+
+  void
+    setCastShadow(bool v) {
+    castShadow = v;
+  }
+
+  bool
+    canCastShadow() const {
+    return castShadow;
+  }
+
+  void
+    renderShadow(DeviceContext& deviceContext);
+
 private:
-  std::vector<MeshComponent> m_meshes; ///< Vector of mesh components associated with the actor.
-  std::vector<Texture> m_textures; ///< Vector of textures associated with the actor.
-  std::vector<Buffer> m_vertexBuffers; ///< Vector of buffers associated with the actor.
-  std::vector<Buffer> m_indexBuffers; ///< Vector of index buffers associated with the actor.
-  CBChangesEveryFrame m_model; ///< Constant buffer for model transformations and mesh color.
-  Buffer m_modelBuffer; ///< Buffer for the model constant buffer.
-  std::string m_name = "Actor"; ///< Name of the actor.
-  bool castShadow = false; ///< Flag indicating if the actor casts shadows.
+  std::vector<MeshComponent> m_meshes;  ///< Vector de componentes de malla.
+  std::vector<Texture> m_textures;      ///< Vector de texturas.
+  std::vector<Buffer> m_vertexBuffers;  ///< Buffers de v�rtices.
+  std::vector<Buffer> m_indexBuffers;   ///< Buffers de �ndices.
+  BlendState m_blendstate;
+  Rasterizer m_rasterizer;
+  SamplerState m_sampler;
+  CBChangesEveryFrame m_model;          ///< Constante del buffer para cambios en cada frame.
+  Buffer m_modelBuffer;                 ///< Buffer del modelo.
+
+  // Shadows
+  ShaderProgram m_shaderShadow;
+  Buffer m_shaderBuffer;
+  BlendState m_shadowBlendState;
+  DepthStencilState m_shadowDepthStencilState;
+  CBChangesEveryFrame m_cbShadow;
+
+  XMFLOAT4                            m_LightPos;
+  std::string m_name = "Actor";         ///< Nombre del actor.
+  bool castShadow = true;              ///< Indica si el actor proyecta sombras.
 };

@@ -42,9 +42,7 @@ BaseApp::init() {
     return hr;
   }
 
-  // g_deviceContext.m_deviceContext->OMSetRenderTargets(1, &g_renderTargetView, g_pDepthStencilView);
-
-      // Crear el g_viewport
+  // Crear el g_viewport
   hr = g_viewport.init(g_window);
 
   if (FAILED(hr)) {
@@ -86,107 +84,92 @@ BaseApp::init() {
   }
 
   // Load Koromaru OBJ Model
-  LoadData LD = m_loader.LoadOBJModel("models/koroGod.obj");
+  //LoadData LD = m_loader.LoadOBJModel("models/koroGod.obj");
+  g_AKoro = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
 
-  // Usar los datos del modelo en vez del cubo
-  cubeMesh.m_vertex = LD.vertex;
-  cubeMesh.m_index = LD.index;
+  if (!g_AKoro.isNull()) {
+    // Crear Vertex buffer e index buffer para el modelo
+    koroMesh = m_loader.LoadOBJModel("models/koroGod.obj");
 
-  // Ya no es necesario definir los vértices/índices del cubo manualmente
+    // Cargar la textura
+    hr = g_koroTexture.init(g_device, "textures/korotexture", PNG);
+    if (FAILED(hr)) {
+      ERROR("Main", "InitDevice",
+        ("Failed to initialize Koro texture. HRESULT: " + std::to_string(hr)).c_str());
+      return hr;
+    }
+    std::vector<MeshComponent> Koromeshes;
+    Koromeshes.push_back(koroMesh);
+    std::vector<Texture> KoroTextures;
+    KoroTextures.push_back(g_koroTexture);
+    g_AKoro->SetMesh(g_device, Koromeshes);
+    g_AKoro->setTextures(KoroTextures);
 
-  hr = m_vertexBuffer.init(g_device, cubeMesh, D3D11_BIND_VERTEX_BUFFER);
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize VertexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
+    g_actors.push_back(g_AKoro);
+    g_AKoro->getComponent<Transform>()->setPosition(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
+    g_AKoro->getComponent<Transform>()->setRotation(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
+    g_AKoro->getComponent<Transform>()->setScale(EngineUtilities::Vector3(0.1f, 0.1f, 0.1f));
   }
-
-  hr = m_indexBuffer.init(g_device, cubeMesh, D3D11_BIND_INDEX_BUFFER);
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize IndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
+  else {
+    ERROR("Main", "InitDevice", "Failed to create Koro actor.");
+    return E_FAIL;
   }
+  
+  // Set plane actor
+  g_APlane = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
 
-  /*// Crear vertex buffer y index buffer para el cubo
-  SimpleVertex vertices[] = {
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+  if (!g_APlane.isNull()) {
+    SimpleVertex planeVertices[] =
+    {
+        { XMFLOAT3(-20.0f, 0.0f, -20.0f), XMFLOAT2(0.0f, 0.0f) },
+        { XMFLOAT3(20.0f, 0.0f, -20.0f), XMFLOAT2(1.0f, 0.0f) },
+        { XMFLOAT3(20.0f, 0.0f,  20.0f), XMFLOAT2(1.0f, 1.0f) },
+        { XMFLOAT3(-20.0f, 0.0f,  20.0f), XMFLOAT2(0.0f, 1.0f) },
+    };
 
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+    WORD planeIndices[] =
+    {
+        0, 2, 1,
+        0, 3, 2
+    };
 
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+    g_planeIndexCount = 6;
 
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
+    // Store the vertex data
+    for (int i = 0; i < 4; i++) {
+      planeMesh.m_vertex.push_back(planeVertices[i]);
+    }
+    // Store the index data
+    for (int i = 0; i < 6; i++) {
+      planeMesh.m_index.push_back(planeIndices[i]);
+    }
 
-      { XMFLOAT3(-1.0f, -1.0f, -1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, -1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, -1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, -1.0f), XMFLOAT2(0.0f, 1.0f) },
+    planeMesh.m_numVertex = 4;
+    planeMesh.m_numIndex = 6;
 
-      { XMFLOAT3(-1.0f, -1.0f, 1.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(1.0f, -1.0f, 1.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(1.0f, 1.0f, 1.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-1.0f, 1.0f, 1.0f), XMFLOAT2(0.0f, 1.0f) },
-  };
-  unsigned int indices[] = {
-      3,1,0,
-      2,1,3,
+    // Cargar la textura
+    hr = g_planeTexture.init(g_device, "Textures/Default", DDS);
+    if (FAILED(hr)) {
+      ERROR("Main", "InitDevice",
+        ("Failed to initialize DrakePistol Texture. HRESULT: " + std::to_string(hr)).c_str());
+      return hr;
+    }
+    std::vector<MeshComponent> PlaneMeshes;
+    PlaneMeshes.push_back(planeMesh);
+    std::vector<Texture> PlaneTextures;
+    PlaneTextures.push_back(g_planeTexture);
+    g_APlane->SetMesh(g_device, PlaneMeshes);
+    g_APlane->setTextures(PlaneTextures);
 
-      6,4,5,
-      7,4,6,
-
-      11,9,8,
-      10,9,11,
-
-      14,12,13,
-      15,12,14,
-
-      19,17,16,
-      18,17,19,
-
-      22,20,21,
-      23,20,22
-  };
-
-  // Store the vertex data
-  for (int i = 0; i < 24; i++) {
-    cubeMesh.m_vertex.push_back(vertices[i]);
+    g_APlane->getComponent<Transform>()->setPosition(EngineUtilities::Vector3(0.0f, -5.0f, 0.0f));
+    g_APlane->getComponent<Transform>()->setRotation(EngineUtilities::Vector3(0.0f, 0.0f, 0.0f));
+    g_APlane->getComponent<Transform>()->setScale(EngineUtilities::Vector3(1.0f, 1.0f, 1.0f));
+    g_actors.push_back(g_APlane);
   }
-  // Store the index data
-  for (int i = 0; i < 36; i++) {
-    cubeMesh.m_index.push_back(indices[i]);
+  else {
+    ERROR("Main", "InitDevice", "Failed to create Plane Actor.");
+    return E_FAIL;
   }
-
-  hr = m_vertexBuffer.init(g_device, cubeMesh, D3D11_BIND_VERTEX_BUFFER);
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize VertexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  hr = m_indexBuffer.init(g_device, cubeMesh, D3D11_BIND_INDEX_BUFFER);
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize IndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }*/
-
-  // Establecer topología primitiva
-  g_deviceContext.m_deviceContext->IASetPrimitiveTopology(D3D11_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
   // Crear los constant buffers
   hr = m_neverChanges.init(g_device, sizeof(CBNeverChanges));
@@ -203,26 +186,6 @@ BaseApp::init() {
     return hr;
   }
 
-  hr = m_changeEveryFrame.init(g_device, sizeof(CBChangesEveryFrame));
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize ChangesEveryFrame Buffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  // Cargar la textura del modelo usando la clase Texture
-  
-  hr = modelTexture.init(g_device, "textures/korotexture", PNG);
-  if (FAILED(hr))
-    return hr;
-  g_pTextureRV = modelTexture.m_textureFromImg;
-
-  // Cargar la textura del plano usando la clase Texture
-  hr = planeTexture.init(g_device, "textures/Default", PNG);
-  if (FAILED(hr))
-    return hr;
-  g_pPlaneTextureRV = planeTexture.m_textureFromImg;
-
 
   // Crear el sampler state para ambos
   D3D11_SAMPLER_DESC sampDesc;
@@ -234,10 +197,7 @@ BaseApp::init() {
   sampDesc.ComparisonFunc = D3D11_COMPARISON_NEVER;
   sampDesc.MinLOD = 0;
   sampDesc.MaxLOD = D3D11_FLOAT32_MAX;
-  hr = g_device.m_device->CreateSamplerState(&sampDesc, &g_pSamplerLinear);
-  if (FAILED(hr))
-    return hr;
-  hr = g_device.m_device->CreateSamplerState(&sampDesc, &g_pPlaneSamplerLinear);
+  hr = g_device.CreateSamplerState(&sampDesc, &m_pSamplerLinear);
   if (FAILED(hr))
     return hr;
 
@@ -252,55 +212,6 @@ BaseApp::init() {
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
 
-  //------- CREACIÓN DE GEOMETRÍA DEL PLANO (suelo) -------//
-  SimpleVertex planeVertices[] =
-  {
-      { XMFLOAT3(-20.0f, 0.0f, -20.0f), XMFLOAT2(0.0f, 0.0f) },
-      { XMFLOAT3(20.0f, 0.0f, -20.0f), XMFLOAT2(1.0f, 0.0f) },
-      { XMFLOAT3(20.0f, 0.0f,  20.0f), XMFLOAT2(1.0f, 1.0f) },
-      { XMFLOAT3(-20.0f, 0.0f,  20.0f), XMFLOAT2(0.0f, 1.0f) },
-  };
-
-  WORD planeIndices[] =
-  {
-      0, 2, 1,
-      0, 3, 2
-  };
-
-  g_planeIndexCount = 6;
-
-  // Store the vertex data
-  for (int i = 0; i < 4; i++) {
-    planeMesh.m_vertex.push_back(planeVertices[i]);
-  }
-  // Store the index data
-  for (int i = 0; i < 6; i++) {
-    planeMesh.m_index.push_back(planeIndices[i]);
-  }
-
-  // Crear el vertex buffer y index buffer para el plano
-  hr = m_planeVertexBuffer.init(g_device, planeMesh, D3D11_BIND_VERTEX_BUFFER);
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize PlaneVertexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  hr = m_planeIndexBuffer.init(g_device, planeMesh, D3D11_BIND_INDEX_BUFFER);
-
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize PlaneIndexBuffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
-
-  hr = m_constPlane.init(g_device, sizeof(CBChangesEveryFrame));
-  if (FAILED(hr)) {
-    ERROR("Main", "InitDevice",
-      ("Failed to initialize Plane Buffer. HRESULT: " + std::to_string(hr)).c_str());
-    return hr;
-  }
 
   //------- COMPILAR SHADER DE SOMBRA -------//
   hr = g_shaderShadow.CreateShader(g_device, PIXEL_SHADER, "RabOneEngine.fx");
@@ -334,12 +245,8 @@ BaseApp::init() {
     return hr;
   }
 
-  // Initialize the world matrices
-  scale.x = 0.025f;
-  scale.y = 0.025f;
-  scale.z = 0.025f;
-  rotation.y = 3.5f; // Rotación inicial en Y
-  
+  g_LightPos = XMFLOAT4(2.0f, 4.0f, -2.0f, 1.0f); // Posición de la luz
+
   g_userInterface.init(g_window.m_hWnd, g_device.m_device, g_deviceContext.m_deviceContext);
 
   return S_OK;
@@ -375,52 +282,10 @@ BaseApp::update() {
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
   m_changeOnResize.update(g_deviceContext, nullptr, 0, nullptr, &cbChangesOnResize, 0, 0);
 
-  // --- Transformación del cubo ---
-  // Parámetros del cubo:
-  float cubePosX = position.x, cubePosY = position.y, cubePosZ = position.z;  // Ubicado 2 unidades arriba
-  //float cubeScale = 1.0f;                                    // Escala uniforme
-  float cubeAngleX = rotation.x, cubeAngleY = rotation.y, cubeAngleZ = rotation.z;  // Rotación dinámica en Y
-
-  // Crear las matrices individuales
-  XMMATRIX cubeScaleMat = XMMatrixScaling(scale.x, scale.y, scale.z);
-  XMMATRIX cubeRotMat = XMMatrixRotationX(cubeAngleX) *
-    XMMatrixRotationY(cubeAngleY) *
-    XMMatrixRotationZ(cubeAngleZ);
-  XMMATRIX cubeTransMat = XMMatrixTranslation(cubePosX, cubePosY, cubePosZ);
-
-  // Combinar: primero escala, luego rota y por último traslada
-  g_World = cubeTransMat * cubeRotMat * cubeScaleMat;
-
-  // Actualizar el color animado del cubo
-  g_vMeshColor.x = (sinf(t * 1.0f) + 1.0f) * 0.5f;
-  g_vMeshColor.y = (cosf(t * 3.0f) + 1.0f) * 0.5f;
-  g_vMeshColor.z = (sinf(t * 5.0f) + 1.0f) * 0.5f;
-
-  // --- Transformación del plano ---
-  // Parámetros para el plano:
-  float planePosX = 0.0f, planePosY = -5.0f, planePosZ = 0.0f;
-  // Aunque los vértices ya definen un plano extenso (-20 a 20), aquí puedes ajustar el escalado adicional
-  float planeScaleFactor = 1.0f; // Puedes modificar este factor para agrandar o reducir el plano
-  float planeAngleX = 0.0f, planeAngleY = 0.0f, planeAngleZ = 0.0f; // Sin rotación por defecto
-
-  XMMATRIX planeScaleMat = XMMatrixScaling(planeScaleFactor, planeScaleFactor, planeScaleFactor);
-  XMMATRIX planeRotMat = XMMatrixRotationX(planeAngleX) *
-    XMMatrixRotationY(planeAngleY) *
-    XMMatrixRotationZ(planeAngleZ);
-  XMMATRIX planeTransMat = XMMatrixTranslation(planePosX, planePosY, planePosZ);
-
-  // Combinar transformaciones para el plano
-  g_PlaneWorld = planeTransMat * planeRotMat * planeScaleMat;
-
-  // Update Plane
-  cbPlane.mWorld = XMMatrixTranspose(g_PlaneWorld);
-  cbPlane.vMeshColor = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
-  m_constPlane.update(g_deviceContext, nullptr, 0, nullptr, &cbPlane, 0, 0);
-
-  // Update cube
-  cb.mWorld = XMMatrixTranspose(g_World);
-  cb.vMeshColor = g_vMeshColor;
-  m_changeEveryFrame.update(g_deviceContext, nullptr, 0, nullptr, &cb, 0, 0);
+  // Update the Koro actor
+  for (auto& actor : g_actors) {
+      actor->update(0, g_deviceContext);
+  }
 
   // Update Shadow cube
   float dot = g_LightPos.y;
@@ -455,42 +320,10 @@ BaseApp::render() {
   m_neverChanges.render(g_deviceContext, 0, 1);
   m_changeOnResize.render(g_deviceContext, 1, 1);
 
-  //------------- Renderizar el plano (suelo) -------------//
-  m_planeVertexBuffer.render(g_deviceContext, 0, 1);
-  m_planeIndexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-  m_constPlane.render(g_deviceContext, 2, 1);
-  m_constPlane.render(g_deviceContext, 2, 1, true);
-  // Usa la textura y sampler del plano
-  planeTexture.render(g_deviceContext, 0, 1);
-  //g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pPlaneTextureRV);
-  g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pPlaneSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(planeMesh.m_index.size(), 0, 0);
-
-  //------------- Renderizar el modelo -------------//
-  m_vertexBuffer.render(g_deviceContext, 0, 1);
-  m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-  m_changeEveryFrame.render(g_deviceContext, 2, 1);
-  m_changeEveryFrame.render(g_deviceContext, 2, 1, true);
-  // Usa la textura y sampler del modelo
-  modelTexture.render(g_deviceContext, 0, 1);
-  //g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
-  g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
-
-
-  //------------- Renderizar el cubo (normal) -------------//
-  // Asignar buffers Vertex e Index
-  m_vertexBuffer.render(g_deviceContext, 0, 1);
-
-  m_indexBuffer.render(g_deviceContext, 0, 1, false, DXGI_FORMAT_R32_UINT);
-
-  // Asignar buffers constantes
-  m_changeEveryFrame.render(g_deviceContext, 2, 1);
-  m_changeEveryFrame.render(g_deviceContext, 2, 1, true);
-
-  g_deviceContext.m_deviceContext->PSSetShaderResources(0, 1, &g_pTextureRV);
-  g_deviceContext.m_deviceContext->PSSetSamplers(0, 1, &g_pSamplerLinear);
-  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
+  //--------------- Renderizar a Koromaru ---------------//
+  for (auto& actor : g_actors) {
+    actor->render(g_deviceContext);
+  }
 
   //------------- Renderizar la sombra del cubo -------------//
   g_shaderShadow.render(g_deviceContext, PIXEL_SHADER);
@@ -505,7 +338,7 @@ BaseApp::render() {
   // Asignar buffers constantes
   m_constShadow.render(g_deviceContext, 2, 1, true);
 
-  g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
+  //g_deviceContext.m_deviceContext->DrawIndexed(cubeMesh.m_index.size(), 0, 0);
 
   g_shadowBlendState.render(g_deviceContext, blendFactor, 0xffffffff, true);
   g_shadowDepthStencilState.render(g_deviceContext, 0, true);
@@ -519,19 +352,16 @@ BaseApp::render() {
 // Libera los recursos utilizados por la aplicación. 
 void
 BaseApp::destroy() {
+  g_userInterface.destroy();
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
 
   g_shadowBlendState.destroy();
   g_shadowDepthStencilState.destroy();
   g_shaderShadow.destroy();
-  m_planeVertexBuffer.destroy();
-  m_planeIndexBuffer.destroy();
   if (g_pSamplerLinear) g_pSamplerLinear->Release();
   if (g_pTextureRV) g_pTextureRV->Release();
   m_neverChanges.destroy();
-  m_changeOnResize.destroy();
-  m_changeEveryFrame.destroy();
-  m_constPlane.destroy();
+  m_changeOnResize.destroy();;
   m_constShadow.destroy();
   m_vertexBuffer.destroy();
   m_indexBuffer.destroy();
@@ -542,7 +372,6 @@ BaseApp::destroy() {
   g_swapChain.destroy();
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->Release();
   if (g_device.m_device) g_device.m_device->Release();
-  g_userInterface.destroy();
 }
 
 // Ejecuta la aplicación, configurando el entorno y el bucle principal.
