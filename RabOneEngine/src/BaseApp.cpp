@@ -134,18 +134,12 @@ BaseApp::init() {
         MESSAGE("Main", "InitDevice", 
           "Loaded Shiba FBX with " << shibaMeshes.size() << " meshes");
         
-        // Load the texture - corrected filename to match your specification
+        // Load the texture
         hr = g_shibaTexture.init(g_device, "textures/shiba", PNG);
         if (FAILED(hr)) {
           ERROR("Main", "InitDevice",
-            ("Failed to initialize Shiba texture. HRESULT: " + std::to_string(hr)).c_str());
+               ("Failed to initialize Shiba texture. HRESULT: " + std::to_string(hr)).c_str());
           
-          // Try loading a default texture as fallback
-          hr = g_shibaTexture.init(g_device, "Textures/Default", PNG);
-          if (FAILED(hr)) {
-            ERROR("Main", "InitDevice", "Failed to load fallback texture for Shiba");
-            return hr;
-          }
         }
 
         std::vector<Texture> shibaTextures;
@@ -157,8 +151,8 @@ BaseApp::init() {
         // Position the Shiba model next to Koro with better positioning
         g_AShiba->getComponent<Transform>()->setTransform(
           EngineUtilities::Vector3(1.0f, 0.0f, 0.0f), // Position offset from Koro
-          EngineUtilities::Vector3(5.0f, 3.4f, 0.0f),  // No rotation
-          EngineUtilities::Vector3(1.0f, 1.0f, 1.0f) // Smaller scale like Koro
+          EngineUtilities::Vector3(5.0f, 3.4f, 0.0f), 
+          EngineUtilities::Vector3(1.0f, 1.0f, 1.0f)
         );
         g_AShiba->setCastShadow(false);
         g_actors.push_back(g_AShiba);
@@ -175,6 +169,86 @@ BaseApp::init() {
   }
   else {
     ERROR("Main", "InitDevice", "Failed to create Shiba actor.");
+    return E_FAIL;
+  }
+
+  // Set Rei Ayanmi's FBX Model
+  g_ARei = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
+
+  if (!g_AShiba.isNull()) {
+    // Load FBX model using ModelLoader
+    if (m_loader.LoadFBXModel("models/Rei.fbx")) {
+      // Get the loaded meshes from the ModelLoader
+      std::vector<MeshComponent> reiMeshes = m_loader.meshes;
+
+      if (!reiMeshes.empty()) {
+        MESSAGE("Main", "InitDevice",
+          "Loaded Rei FBX with " << reiMeshes.size() << " meshes");
+
+      std::vector<Texture> reiTextures;
+
+        // Load the texture 01
+        hr = g_reiTexture1.init(g_device, "textures/Face", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Rei's 01 texture. HRESULT: " + std::to_string(hr)).c_str());
+
+        }
+        reiTextures.push_back(g_reiTexture1);
+        // Load the texture 02
+        hr = g_reiTexture2.init(g_device, "textures/CHR_REI_005_col", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Rei's 02 texture. HRESULT: " + std::to_string(hr)).c_str());
+        }
+        reiTextures.push_back(g_reiTexture2);
+        // Load the texture 03
+        hr = g_reiTexture3.init(g_device, "textures/CHR_REI_005_ilm", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Rei's 03 texture. HRESULT: " + std::to_string(hr)).c_str());
+        }
+        reiTextures.push_back(g_reiTexture3);
+        // Load the texture 04
+        hr = g_reiTexture4.init(g_device, "textures/CHR_REI_005_light", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Rei's 04 texture. HRESULT: " + std::to_string(hr)).c_str());
+        }
+        reiTextures.push_back(g_reiTexture4);
+        // Load the texture 05
+        hr = g_reiTexture5.init(g_device, "textures/CHR_REI_005_shadow", PNG);
+        if (FAILED(hr)) {
+          ERROR("Main", "InitDevice",
+            ("Failed to initialize Rei's 05 texture. HRESULT: " + std::to_string(hr)).c_str());
+        }
+        reiTextures.push_back(g_reiTexture5);
+
+        // Set the meshes and textures for Rei actor
+        g_ARei->SetMesh(g_device, reiMeshes);
+        g_ARei->setTextures(reiTextures);
+
+        // Position the Shiba model next to Koro with better positioning
+        g_ARei->getComponent<Transform>()->setTransform(
+          EngineUtilities::Vector3(-2.0f, 0.0f, 0.0f), // Position offset from Koro
+          EngineUtilities::Vector3(5.0f, -3.4f, 0.0f),  // No rotation
+          EngineUtilities::Vector3(2.0f, 2.0f, 2.0f) 
+        );
+        g_ARei->setCastShadow(false);
+        g_actors.push_back(g_ARei);
+      }
+      else {
+        ERROR("Main", "InitDevice", "No meshes found in FBX model.");
+        return E_FAIL;
+      }
+    }
+    else {
+      ERROR("Main", "InitDevice", "Failed to load FBX model: models/Rei.FBX");
+      return E_FAIL;
+    }
+  }
+  else {
+    ERROR("Main", "InitDevice", "Failed to create Rei's actor.");
     return E_FAIL;
   }
 
@@ -273,9 +347,8 @@ void
 BaseApp::update() {
   // Actualizar la interfaz de usuario
   g_userInterface.update();
-
-  g_userInterface.GUITab("RabOne Main");
   g_userInterface.TransformGUI(*this);
+  g_userInterface.SceneGraphGUI(*this); // Add this line to show the scene graph tab
 
   // Actualizar tiempo (mismo que antes)
   static float t = 0.0f;

@@ -58,10 +58,18 @@ public:
   GUITab(const std::string& tabName);
 
   /**
-   * @brief Place holder method, contains the user interface components to be displayed in the ImGui tab
+   * @brief Shows transform controls for the currently selected actor (if any).
+   * Only the selected actor's transform is shown, as set by SceneGraphGUI.
    */
   void
   TransformGUI(BaseApp& g_bApp);
+
+  /**
+   * @brief Shows a simple scene graph tab listing the main actors.
+   * Clicking an actor selects it for editing in the Transform tab.
+   */
+  void
+  SceneGraphGUI(BaseApp& g_bApp);
 
   /**
    * @brief Allows you to manipulate three float values in the GUI

@@ -146,32 +146,54 @@ UserInterface::GUITab(const std::string& tabName) {
 
 void
 UserInterface::TransformGUI(BaseApp& g_bApp) {
-
   ImGui::Begin("Transform");
 
-  // Access the first actor's transform component for demonstration
-  // You may want to modify this to handle multiple actors or a selected actor
-  if (!g_bApp.g_actors.empty() && !g_bApp.g_actors[0].isNull()) {
-    auto transform = g_bApp.g_actors[0]->getComponent<Transform>();
+  // Only show transform controls if an actor is selected
+  if (!g_bApp.m_selectedActor.isNull()) {
+    auto transform = g_bApp.m_selectedActor->getComponent<Transform>();
     if (transform) {
-      // Get current values
+      std::string label = g_bApp.m_selectedActor->getName();
+      if (label.empty()) label = "Selected Actor";
+      ImGui::SeparatorText(label.c_str());
       EngineUtilities::Vector3 position = transform->getPosition();
       EngineUtilities::Vector3 rotation = transform->getRotation();
       EngineUtilities::Vector3 scale = transform->getScale();
-
-      // Create ImGui controls
       ImGui::DragFloat3("Position", &position.x, 0.1f);
       ImGui::DragFloat3("Rotation", &rotation.x, 0.1f);
       ImGui::DragFloat3("Scale", &scale.x, 0.1f);
-
-      // Update the transform component with new values
       transform->setPosition(position);
       transform->setRotation(rotation);
       transform->setScale(scale);
     }
+  } else {
+    ImGui::Text("Select an actor in the Scene Graph to edit its transform.");
   }
-  else {
-    ImGui::Text("No actors available");
+
+  ImGui::End();
+}
+
+void
+UserInterface::SceneGraphGUI(BaseApp& g_bApp) {
+  ImGui::Begin("Scene Graph");
+
+  // Show each actor as selectable
+  if (!g_bApp.g_AKoro.isNull()) {
+    bool selected = (g_bApp.m_selectedActor == g_bApp.g_AKoro);
+    if (ImGui::Selectable("Koro", selected)) {
+      g_bApp.m_selectedActor = g_bApp.g_AKoro;
+    }
+  }
+  if (!g_bApp.g_AShiba.isNull()) {
+    bool selected = (g_bApp.m_selectedActor == g_bApp.g_AShiba);
+    if (ImGui::Selectable("Shiba", selected)) {
+      g_bApp.m_selectedActor = g_bApp.g_AShiba;
+    }
+  }
+  if (!g_bApp.g_ARei.isNull()) {
+    bool selected = (g_bApp.m_selectedActor == g_bApp.g_ARei);
+    if (ImGui::Selectable("Rei", selected)) {
+      g_bApp.m_selectedActor = g_bApp.g_ARei;
+    }
   }
 
   ImGui::End();
