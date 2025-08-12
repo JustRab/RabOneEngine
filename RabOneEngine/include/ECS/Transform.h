@@ -3,10 +3,23 @@
 #include "Engine Utilities/Vectors/Vector3.h"
 #include "Component.h"
 
-class
-  Transform : public Component {
+/**
+ * @class Transform
+ * @brief Component that manages position, rotation, scale, and transformation matrix for an entity.
+ *
+ * The Transform component encapsulates the spatial properties of an entity, including its position,
+ * rotation, and scale in 3D space. It also maintains a transformation matrix that can be used for
+ * rendering or physics calculations. This component is fundamental for any object that requires
+ * spatial manipulation in a scene.
+ */
+class Transform : public Component {
 public:
-  // Constructor que inicializa posici�n, rotaci�n y escala por defecto
+  /**
+   * @brief Default constructor.
+   *
+   * Initializes position, rotation, and scale to their default values (usually zero vectors),
+   * and sets the component type to TRANSFORM.
+   */
   Transform() : position(),
     rotation(),
     scale(),
@@ -14,67 +27,98 @@ public:
     Component(ComponentType::TRANSFORM) {
   }
 
-  // M�todos para inicializaci�n, actualizaci�n, renderizado y destrucci�n
-  // Inicializa el objeto Transform
-  void
-    init();
+  /**
+   * @brief Initializes the Transform component.
+   *
+   * This method should be called before using the component to ensure all internal data
+   * is set up correctly.
+   */
+  void init();
 
-  // Actualiza el estado del objeto Transform basado en el tiempo transcurrido
-  // @param deltaTime: Tiempo transcurrido desde la �ltima actualizaci�n
-  void
-    update(float deltaTime) override;
+  /**
+   * @brief Updates the state of the Transform component based on elapsed time.
+   * @param deltaTime Time elapsed since the last update (in seconds).
+   *
+   * This method can be used to animate or otherwise modify the transform over time.
+   */
+  void update(float deltaTime) override;
 
-  // Renderiza el objeto Transform
-  // @param deviceContext: Contexto del dispositivo de renderizado
-  void
-    render(DeviceContext& deviceContext) override {}
+  /**
+   * @brief Renders the Transform component.
+   * @param deviceContext Reference to the device context for graphics operations.
+   *
+   * The default implementation does nothing, as Transform is typically not directly rendered.
+   */
+  void render(DeviceContext& deviceContext) override {}
 
-  // Destruye el objeto Transform y libera recursos
-  void
-    destroy() {}
+  /**
+   * @brief Destroys the Transform component and releases resources.
+   *
+   * The default implementation does nothing, as Transform does not own external resources.
+   */
+  void destroy() {}
 
-  // M�todos de acceso a los datos de posici�n
-  // Retorna la posici�n actual
-  const EngineUtilities::Vector3&
-    getPosition() const { return position; }
+  /**
+   * @brief Gets the current position.
+   * @return Reference to the current position vector.
+   */
+  const EngineUtilities::Vector3& getPosition() const { return position; }
 
-  // Establece una nueva posici�n
-  void
-    setPosition(const EngineUtilities::Vector3& newPos) { position = newPos; }
+  /**
+   * @brief Sets a new position.
+   * @param newPos The new position vector.
+   */
+  void setPosition(const EngineUtilities::Vector3& newPos) { position = newPos; }
 
-  // M�todos de acceso a los datos de rotaci�n
-  // Retorna la rotaci�n actual
-  const EngineUtilities::Vector3&
-    getRotation() const { return rotation; }
+  /**
+   * @brief Gets the current rotation.
+   * @return Reference to the current rotation vector (in degrees or radians, depending on convention).
+   */
+  const EngineUtilities::Vector3& getRotation() const { return rotation; }
 
-  // Establece una nueva rotaci�n
-  void
-    setRotation(const EngineUtilities::Vector3& newRot) { rotation = newRot; }
+  /**
+   * @brief Sets a new rotation.
+   * @param newRot The new rotation vector.
+   */
+  void setRotation(const EngineUtilities::Vector3& newRot) { rotation = newRot; }
 
-  // M�todos de acceso a los datos de escala
-  // Retorna la escala actual
-  const EngineUtilities::Vector3&
-    getScale() const { return scale; }
+  /**
+   * @brief Gets the current scale.
+   * @return Reference to the current scale vector.
+   */
+  const EngineUtilities::Vector3& getScale() const { return scale; }
 
-  // Establece una nueva escala
-  void
-    setScale(const EngineUtilities::Vector3& newScale) { scale = newScale; }
+  /**
+   * @brief Sets a new scale.
+   * @param newScale The new scale vector.
+   */
+  void setScale(const EngineUtilities::Vector3& newScale) { scale = newScale; }
 
-  void
-    setTransform(const EngineUtilities::Vector3& newPos,
-      const EngineUtilities::Vector3& newRot,
-      const EngineUtilities::Vector3& newSca);
+  /**
+   * @brief Sets position, rotation, and scale in a single call.
+   * @param newPos The new position vector.
+   * @param newRot The new rotation vector.
+   * @param newSca The new scale vector.
+   *
+   * This method is useful for updating all transform properties at once.
+   */
+  void setTransform(const EngineUtilities::Vector3& newPos,
+    const EngineUtilities::Vector3& newRot,
+    const EngineUtilities::Vector3& newSca);
 
-  // M�todo para trasladar la posici�n del objeto
-  // @param translation: Vector que representa la cantidad de traslado en cada eje
-  void
-    translate(const EngineUtilities::Vector3& translation);
+  /**
+   * @brief Translates (moves) the object by the given vector.
+   * @param translation Vector representing the amount to move in each axis.
+   *
+   * Adds the translation vector to the current position.
+   */
+  void translate(const EngineUtilities::Vector3& translation);
 
 private:
-  EngineUtilities::Vector3 position;  // Posici�n del objeto
-  EngineUtilities::Vector3 rotation;  // Rotaci�n del objeto
-  EngineUtilities::Vector3 scale;     // Escala del objeto
+  EngineUtilities::Vector3 position;  ///< Position of the object in world space.
+  EngineUtilities::Vector3 rotation;  ///< Rotation of the object (typically in degrees or radians).
+  EngineUtilities::Vector3 scale;     ///< Scale of the object.
 
 public:
-  XMMATRIX matrix;    // Matriz de transformaci�n
+  XMMATRIX matrix;    ///< Transformation matrix representing the combined position, rotation, and scale.
 };

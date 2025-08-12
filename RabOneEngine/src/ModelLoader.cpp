@@ -225,7 +225,7 @@ ModelLoader::ProcessFBXMesh(FbxNode* node) {
 				if (u < 0.0f) u += 1.0f;
 				if (v < 0.0f) v += 1.0f;
 
-				vertex.Tex = XMFLOAT2(u, v);
+				vertex.Tex = XMFLOAT2(u, -v);
 			}
 			else {
 				vertex.Tex = XMFLOAT2(0.0f, 0.0f);
