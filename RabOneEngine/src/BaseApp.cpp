@@ -1,6 +1,6 @@
 #include "BaseApp.h"
 
-XMFLOAT4                            g_LightPos(2.0f, 4.0f, -2.0f, 1.0f); // Posición de la luz
+XMFLOAT4                            g_LightPos(2.0f, 4.0f, -2.0f, 1.0f); // Posiciï¿½n de la luz
 XMFLOAT4                            g_vMeshColor(0.7f, 0.7f, 0.7f, 1.0f);
 
 Texture modelTexture;
@@ -121,136 +121,126 @@ BaseApp::init() {
     return E_FAIL;
   }
 
-  // Set Shiba FBX Model
-  g_AShiba = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
+  // Set Shiba OBJ Model
+  //g_AShiba = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
+  //
+  //if (!g_AShiba.isNull()) {
+  //  // Load OBJ model using ModelLoader
+  //  MeshComponent shibaMesh = m_loader.LoadOBJModel("models/koroGod.obj");
+  //  
+  //  if (shibaMesh.m_numVertex > 0) {
+  //    MESSAGE("Main", "InitDevice", 
+  //      "Loaded Shiba OBJ with " << shibaMesh.m_numVertex << " vertices");
+  //    
+  //    // Load the texture
+  //    hr = g_shibaTexture.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //           ("Failed to initialize Shiba texture. HRESULT: " + std::to_string(hr)).c_str());
+  //      
+  //    }
+  //
+  //    std::vector<Texture> shibaTextures;
+  //    shibaTextures.push_back(g_shibaTexture);
+  //    
+  //    std::vector<MeshComponent> shibaMeshes;
+  //    shibaMeshes.push_back(shibaMesh);
+  //    g_AShiba->SetMesh(g_device, shibaMeshes);
+  //    g_AShiba->setTextures(shibaTextures);
+  //
+  //    // Position the Shiba model next to Koro with better positioning
+  //    g_AShiba->getComponent<Transform>()->setTransform(
+  //      EngineUtilities::Vector3(1.0f, 0.0f, 0.0f), // Position offset from Koro
+  //      EngineUtilities::Vector3(5.0f, 3.4f, 0.0f), 
+  //      EngineUtilities::Vector3(1.0f, 1.0f, 1.0f)
+  //    );
+  //    g_AShiba->setCastShadow(false);
+  //    g_actors.push_back(g_AShiba);
+  //  }
+  //  else {
+  //    ERROR("Main", "InitDevice", "Failed to load OBJ model: models/koroGod.obj");
+  //    return E_FAIL;
+  //  }
+  //}
+  //else {
+  //  ERROR("Main", "InitDevice", "Failed to create Shiba actor.");
+  //  return E_FAIL;
+  //}
 
-  if (!g_AShiba.isNull()) {
-    // Load FBX model using ModelLoader
-    if (m_loader.LoadFBXModel("models/shiba.FBX")) {
-      // Get the loaded meshes from the ModelLoader
-      std::vector<MeshComponent> shibaMeshes = m_loader.meshes;
-      
-      if (!shibaMeshes.empty()) {
-        MESSAGE("Main", "InitDevice", 
-          "Loaded Shiba FBX with " << shibaMeshes.size() << " meshes");
-        
-        // Load the texture
-        hr = g_shibaTexture.init(g_device, "textures/shiba", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-               ("Failed to initialize Shiba texture. HRESULT: " + std::to_string(hr)).c_str());
-          
-        }
-
-        std::vector<Texture> shibaTextures;
-        shibaTextures.push_back(g_shibaTexture);
-        
-        g_AShiba->SetMesh(g_device, shibaMeshes);
-        g_AShiba->setTextures(shibaTextures);
-
-        // Position the Shiba model next to Koro with better positioning
-        g_AShiba->getComponent<Transform>()->setTransform(
-          EngineUtilities::Vector3(1.0f, 0.0f, 0.0f), // Position offset from Koro
-          EngineUtilities::Vector3(5.0f, 3.4f, 0.0f), 
-          EngineUtilities::Vector3(1.0f, 1.0f, 1.0f)
-        );
-        g_AShiba->setCastShadow(false);
-        g_actors.push_back(g_AShiba);
-      }
-      else {
-        ERROR("Main", "InitDevice", "No meshes found in FBX model.");
-        return E_FAIL;
-      }
-    }
-    else {
-      ERROR("Main", "InitDevice", "Failed to load FBX model: models/shiba.FBX");
-      return E_FAIL;
-    }
-  }
-  else {
-    ERROR("Main", "InitDevice", "Failed to create Shiba actor.");
-    return E_FAIL;
-  }
-
-  // Set Rei Ayanmi's FBX Model
-  g_ARei = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
-
-  if (!g_AShiba.isNull()) {
-    // Load FBX model using ModelLoader
-    if (m_loader.LoadFBXModel("models/Rei.fbx")) {
-      // Get the loaded meshes from the ModelLoader
-      std::vector<MeshComponent> reiMeshes = m_loader.meshes;
-
-      if (!reiMeshes.empty()) {
-        MESSAGE("Main", "InitDevice",
-          "Loaded Rei FBX with " << reiMeshes.size() << " meshes");
-
-      std::vector<Texture> reiTextures;
-
-        // Load the texture 01
-        hr = g_reiTexture1.init(g_device, "textures/Face", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-            ("Failed to initialize Rei's 01 texture. HRESULT: " + std::to_string(hr)).c_str());
-
-        }
-        reiTextures.push_back(g_reiTexture1);
-        // Load the texture 02
-        hr = g_reiTexture2.init(g_device, "textures/CHR_REI_005_col", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-            ("Failed to initialize Rei's 02 texture. HRESULT: " + std::to_string(hr)).c_str());
-        }
-        reiTextures.push_back(g_reiTexture2);
-        // Load the texture 03
-        hr = g_reiTexture3.init(g_device, "textures/CHR_REI_005_ilm", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-            ("Failed to initialize Rei's 03 texture. HRESULT: " + std::to_string(hr)).c_str());
-        }
-        reiTextures.push_back(g_reiTexture3);
-        // Load the texture 04
-        hr = g_reiTexture4.init(g_device, "textures/CHR_REI_005_light", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-            ("Failed to initialize Rei's 04 texture. HRESULT: " + std::to_string(hr)).c_str());
-        }
-        reiTextures.push_back(g_reiTexture4);
-        // Load the texture 05
-        hr = g_reiTexture5.init(g_device, "textures/CHR_REI_005_shadow", PNG);
-        if (FAILED(hr)) {
-          ERROR("Main", "InitDevice",
-            ("Failed to initialize Rei's 05 texture. HRESULT: " + std::to_string(hr)).c_str());
-        }
-        reiTextures.push_back(g_reiTexture5);
-
-        // Set the meshes and textures for Rei actor
-        g_ARei->SetMesh(g_device, reiMeshes);
-        g_ARei->setTextures(reiTextures);
-
-        // Position the Shiba model next to Koro with better positioning
-        g_ARei->getComponent<Transform>()->setTransform(
-          EngineUtilities::Vector3(-2.0f, 0.0f, 0.0f), // Position offset from Koro
-          EngineUtilities::Vector3(5.0f, -3.4f, 0.0f),  // No rotation
-          EngineUtilities::Vector3(2.0f, 2.0f, 2.0f) 
-        );
-        g_ARei->setCastShadow(false);
-        g_actors.push_back(g_ARei);
-      }
-      else {
-        ERROR("Main", "InitDevice", "No meshes found in FBX model.");
-        return E_FAIL;
-      }
-    }
-    else {
-      ERROR("Main", "InitDevice", "Failed to load FBX model: models/Rei.FBX");
-      return E_FAIL;
-    }
-  }
-  else {
-    ERROR("Main", "InitDevice", "Failed to create Rei's actor.");
-    return E_FAIL;
-  }
+  // Set Rei Ayanmi's OBJ Model
+  //g_ARei = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
+  //
+  //if (!g_AShiba.isNull()) {
+  //  // Load OBJ model using ModelLoader
+  //  MeshComponent reiMesh = m_loader.LoadOBJModel("models/koroGod.obj");
+  //  
+  //  if (reiMesh.m_numVertex > 0) {
+  //    MESSAGE("Main", "InitDevice",
+  //      "Loaded Rei OBJ with " << reiMesh.m_numVertex << " vertices");
+  //
+  //  std::vector<Texture> reiTextures;
+  //
+  //    // Load the texture 01
+  //    hr = g_reiTexture1.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //        ("Failed to initialize Rei's 01 texture. HRESULT: " + std::to_string(hr)).c_str());
+  //
+  //    }
+  //    reiTextures.push_back(g_reiTexture1);
+  //    // Load the texture 02
+  //    hr = g_reiTexture2.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //        ("Failed to initialize Rei's 02 texture. HRESULT: " + std::to_string(hr)).c_str());
+  //    }
+  //    reiTextures.push_back(g_reiTexture2);
+  //    // Load the texture 03
+  //    hr = g_reiTexture3.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //        ("Failed to initialize Rei's 03 texture. HRESULT: " + std::to_string(hr)).c_str());
+  //    }
+  //    reiTextures.push_back(g_reiTexture3);
+  //    // Load the texture 04
+  //    hr = g_reiTexture4.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //        ("Failed to initialize Rei's 04 texture. HRESULT: " + std::to_string(hr)).c_str());
+  //    }
+  //    reiTextures.push_back(g_reiTexture4);
+  //    // Load the texture 05
+  //    hr = g_reiTexture5.init(g_device, "textures/korotexture", PNG);
+  //    if (FAILED(hr)) {
+  //      ERROR("Main", "InitDevice",
+  //        ("Failed to initialize Rei's 05 texture. HRESULT: " + std::to_string(hr)).c_str());
+  //    }
+  //    reiTextures.push_back(g_reiTexture5);
+  //
+  //    // Set the meshes and textures for Rei actor
+  //    std::vector<MeshComponent> reiMeshes;
+  //    reiMeshes.push_back(reiMesh);
+  //    g_ARei->SetMesh(g_device, reiMeshes);
+  //    g_ARei->setTextures(reiTextures);
+  //
+  //    // Position the Shiba model next to Koro with better positioning
+  //    g_ARei->getComponent<Transform>()->setTransform(
+  //      EngineUtilities::Vector3(-2.0f, 0.0f, 0.0f), // Position offset from Koro
+  //      EngineUtilities::Vector3(5.0f, -3.4f, 0.0f),  // No rotation
+  //      EngineUtilities::Vector3(2.0f, 2.0f, 2.0f) 
+  //    );
+  //    g_ARei->setCastShadow(false);
+  //    g_actors.push_back(g_ARei);
+  //  }
+  //  else {
+  //    ERROR("Main", "InitDevice", "Failed to load OBJ model: models/koroGod.obj");
+  //    return E_FAIL;
+  //  }
+  //}
+  //else {
+  //  ERROR("Main", "InitDevice", "Failed to create Rei's actor.");
+  //  return E_FAIL;
+  //}
 
   // Set plane actor
   g_APlane = EngineUtilities::TSharedPointer<Actor>(new Actor(g_device));
@@ -322,13 +312,13 @@ BaseApp::init() {
     return hr;
   }
 
-  // Inicializar las matrices de mundo, vista y proyección
+  // Inicializar las matrices de mundo, vista y proyecciï¿½n
   XMVECTOR Eye = XMVectorSet(0.0f, 3.0f, -6.0f, 0.0f);
   XMVECTOR At = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   XMVECTOR Up = XMVectorSet(0.0f, 1.0f, 0.0f, 0.0f);
   g_View = XMMatrixLookAtLH(Eye, At, Up);
 
-  // Actualizar la matriz de proyección
+  // Actualizar la matriz de proyecciï¿½n
   cbNeverChanges.mView = XMMatrixTranspose(g_View);
   g_Projection = XMMatrixPerspectiveFovLH(XM_PIDIV4, g_window.m_width / (FLOAT)g_window.m_height, 0.01f, 100.0f);
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
@@ -342,7 +332,7 @@ BaseApp::init() {
   return hr;
 }
 
-// Actualiza el estado de la aplicación. Debe ser sobreescrito por clases derivadas.
+// Actualiza el estado de la aplicaciï¿½n. Debe ser sobreescrito por clases derivadas.
 void
 BaseApp::update() {
   // Actualizar la interfaz de usuario
@@ -365,7 +355,7 @@ BaseApp::update() {
     t = (dwTimeCur - dwTimeStart) / 1000.0f;
   }
 
-  // Actualizar la matriz de proyección y vista
+  // Actualizar la matriz de proyecciï¿½n y vista
   cbNeverChanges.mView = XMMatrixTranspose(g_View);
   m_neverChanges.update(g_deviceContext, nullptr, 0, nullptr, &cbNeverChanges, 0, 0);
   cbChangesOnResize.mProjection = XMMatrixTranspose(g_Projection);
@@ -377,7 +367,7 @@ BaseApp::update() {
   }
 }
 
-// Renderiza la escena o interfaz de la aplicación.
+// Renderiza la escena o interfaz de la aplicaciï¿½n.
 void
 BaseApp::render() {
   // Limpiar el back buffer y el depth buffer
@@ -411,7 +401,7 @@ BaseApp::render() {
   g_swapChain.present();
 }
 
-// Libera los recursos utilizados por la aplicación. 
+// Libera los recursos utilizados por la aplicaciï¿½n. 
 void
 BaseApp::destroy() {
   if (g_deviceContext.m_deviceContext) g_deviceContext.m_deviceContext->ClearState();
@@ -428,7 +418,7 @@ BaseApp::destroy() {
   g_userInterface.destroy();
 }
 
-// Ejecuta la aplicación, configurando el entorno y el bucle principal.
+// Ejecuta la aplicaciï¿½n, configurando el entorno y el bucle principal.
 int
 BaseApp::run(HINSTANCE hInstance,
   HINSTANCE hPrevInstance,
