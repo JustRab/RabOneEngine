@@ -9,7 +9,7 @@ BaseApp g_baseApp;
 IMGUI_IMPL_API LRESULT ImGui_ImplWin32_WndProcHandler(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
 //--------------------------------------------------------------------------------------
-// Función de mensaje de la ventana
+// Funciï¿½n de mensaje de la ventana
 //--------------------------------------------------------------------------------------
 LRESULT CALLBACK 
 WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam) {
