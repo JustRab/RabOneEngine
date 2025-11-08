@@ -888,7 +888,7 @@ namespace objl
 				{
 					vVert.Position = algorithm::getElement(iPositions, svert[0]);
 					vVert.TextureCoordinate = algorithm::getElement(iTCoords, svert[1]);
-					vVert.TextureCoordinate.Y = 1.0f - vVert.TextureCoordinate.Y; // <--- INVERSIÓN AQUÍ
+					vVert.TextureCoordinate.Y = 1.0f - vVert.TextureCoordinate.Y; // <--- INVERSIï¿½N AQUï¿½
 					noNormal = true;
 					oVerts.push_back(vVert);
 					break;
@@ -905,7 +905,7 @@ namespace objl
 				{
 					vVert.Position = algorithm::getElement(iPositions, svert[0]);
 					vVert.TextureCoordinate = algorithm::getElement(iTCoords, svert[1]);
-					vVert.TextureCoordinate.Y = 1.0f - vVert.TextureCoordinate.Y; // <--- INVERSIÓN AQUÍ
+					vVert.TextureCoordinate.Y = 1.0f - vVert.TextureCoordinate.Y; // <--- INVERSIï¿½N AQUï¿½
 					vVert.Normal = algorithm::getElement(iNormals, svert[2]);
 					oVerts.push_back(vVert);
 					break;
